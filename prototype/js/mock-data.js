@@ -30,16 +30,16 @@
     deepsouth: { safety: 46, traffic: 30, community: 12, flood: 8, tourism: 4 },
   };
 
-  // เมืองหลัก: ตำแหน่ง, จำนวนกล้องจำลอง, การกระจายตัว (กม.), เมืองจำลองอาคาร 3D
+  // เมืองหลัก: ตำแหน่ง, จำนวนกล้องจำลอง, การกระจายตัว (กม.)
   TT.CITIES = [
-    { id: 'bkk', th: 'กรุงเทพฯ', lon: 100.5180, lat: 13.7460, tier: 1, n: 900, spread: 9, mix: 'metro', build: { lon: 100.545, lat: 13.738, r: 7.5, cell: 100, maxH: 240 } },
-    { id: 'cmi', th: 'เชียงใหม่', lon: 98.9853, lat: 18.7883, tier: 1, n: 220, spread: 4, mix: 'north', build: { r: 3, cell: 90, maxH: 48 } },
-    { id: 'pkt', th: 'ภูเก็ต', lon: 98.3923, lat: 7.8804, tier: 1, n: 150, spread: 6, mix: 'tourist', build: { r: 1.8, cell: 90, maxH: 36 } },
-    { id: 'pty', th: 'พัทยา', lon: 100.8825, lat: 12.9236, tier: 1, n: 160, spread: 3, mix: 'tourist', build: { r: 2.2, cell: 90, maxH: 140 } },
-    { id: 'kkn', th: 'ขอนแก่น', lon: 102.8359, lat: 16.4419, tier: 1, n: 150, spread: 4, mix: 'base', build: { r: 2.4, cell: 100, maxH: 70 } },
-    { id: 'hdy', th: 'หาดใหญ่', lon: 100.4747, lat: 7.0086, tier: 1, n: 140, spread: 3.5, mix: 'deepsouth', build: { r: 2.2, cell: 90, maxH: 60 } },
-    { id: 'nma', th: 'นครราชสีมา', lon: 102.0977, lat: 14.9799, tier: 2, n: 120, spread: 4, mix: 'base', build: { r: 2, cell: 100, maxH: 50 } },
-    { id: 'udn', th: 'อุดรธานี', lon: 102.7859, lat: 17.4138, tier: 2, n: 90, spread: 3.5, mix: 'base', build: { r: 1.6, cell: 100, maxH: 40 } },
+    { id: 'bkk', th: 'กรุงเทพฯ', lon: 100.5180, lat: 13.7460, tier: 1, n: 900, spread: 9, mix: 'metro' },
+    { id: 'cmi', th: 'เชียงใหม่', lon: 98.9853, lat: 18.7883, tier: 1, n: 220, spread: 4, mix: 'north' },
+    { id: 'pkt', th: 'ภูเก็ต', lon: 98.3923, lat: 7.8804, tier: 1, n: 150, spread: 6, mix: 'tourist' },
+    { id: 'pty', th: 'พัทยา', lon: 100.8825, lat: 12.9236, tier: 1, n: 160, spread: 3, mix: 'tourist' },
+    { id: 'kkn', th: 'ขอนแก่น', lon: 102.8359, lat: 16.4419, tier: 1, n: 150, spread: 4, mix: 'base' },
+    { id: 'hdy', th: 'หาดใหญ่', lon: 100.4747, lat: 7.0086, tier: 1, n: 140, spread: 3.5, mix: 'deepsouth' },
+    { id: 'nma', th: 'นครราชสีมา', lon: 102.0977, lat: 14.9799, tier: 2, n: 120, spread: 4, mix: 'base' },
+    { id: 'udn', th: 'อุดรธานี', lon: 102.7859, lat: 17.4138, tier: 2, n: 90, spread: 3.5, mix: 'base' },
     { id: 'cri', th: 'เชียงราย', lon: 99.8325, lat: 19.9105, tier: 2, n: 80, spread: 3.5, mix: 'north' },
     { id: 'plk', th: 'พิษณุโลก', lon: 100.2659, lat: 16.8211, tier: 2, n: 70, spread: 3, mix: 'base' },
     { id: 'sni', th: 'สุราษฎร์ธานี', lon: 99.3215, lat: 9.1382, tier: 2, n: 70, spread: 3, mix: 'base' },
@@ -91,7 +91,7 @@
     ['จุดเฝ้าระวังไฟป่า ปางอุ๋ง', 97.8150, 19.4950, 'haze', 0],
   ];
 
-  // ทางหลวงสายหลัก (ประมาณแนว) — ใช้วางกล้องและจำลองกระแสจราจร
+  // ทางหลวงสายหลัก (ประมาณแนว) — ใช้วางกล้องตามแนวถนน
   TT.HIGHWAYS = [
     { no: 1, th: 'พหลโยธิน', pts: [[100.56, 13.86], [100.60, 14.05], [100.58, 14.35], [100.40, 14.88], [100.13, 15.18], [100.12, 15.70], [99.95, 16.05], [99.52, 16.48], [99.12, 16.88], [99.05, 17.30], [99.30, 17.80], [99.50, 18.29], [99.90, 19.17], [99.83, 19.91]] },
     { no: 11, th: 'ลำปาง-เชียงใหม่', pts: [[99.50, 18.29], [99.25, 18.45], [99.01, 18.58], [98.98, 18.79]] },
@@ -128,54 +128,6 @@
     return `${p}${n}${num}`.replace(/\s+/g, ' ').trim();
   }
 
-  // ---------- เมืองจำลอง: ตารางถนน + อาคาร ----------
-  const BLOCK = 5; // ถนนทุก 5 ช่อง
-  function cityGrid(city) {
-    const b = city.build; if (!b) return null;
-    return { origin: [b.lon ?? city.lon, b.lat ?? city.lat], cell: b.cell, r: b.r * 1000, maxH: b.maxH };
-  }
-  function toMeters(o, p) { return [(p[0] - o[0]) * 111320 * Math.cos(o[1] * Math.PI / 180), (p[1] - o[1]) * 111320]; }
-  function fromMeters(o, m) { return [o[0] + m[0] / (111320 * Math.cos(o[1] * Math.PI / 180)), o[1] + m[1] / 111320]; }
-
-  // วางกล้องให้อยู่บนถนนของเมืองจำลอง และหันตามแนวถนน
-  function snapToStreet(grid, p, r) {
-    const [x, y] = toMeters(grid.origin, p);
-    const step = grid.cell * BLOCK;
-    const xs = Math.round(x / step) * step, ys = Math.round(y / step) * step;
-    const side = (r() < 0.5 ? -1 : 1) * grid.cell * 0.3;
-    if (Math.abs(x - xs) < Math.abs(y - ys)) return { pos: fromMeters(grid.origin, [xs + side, y]), heading: (r() < 0.5 ? 0 : 180) + r.range(-12, 12) };
-    return { pos: fromMeters(grid.origin, [x, ys + side]), heading: (r() < 0.5 ? 90 : 270) + r.range(-12, 12) };
-  }
-
-  TT.buildBuildings = function () {
-    const r = TT.rng(77);
-    const out = [];
-    for (const city of TT.CITIES) {
-      const g = cityGrid(city); if (!g) continue;
-      const lms = TT.LANDMARKS.filter(l => TT.distance([l[1], l[2]], g.origin) < g.r * 1.4).map(l => [l[1], l[2]]);
-      const n = Math.ceil(g.r / g.cell);
-      const prov = TT.provinceAt([city.lon, city.lat]);
-      for (let i = -n; i <= n; i++) {
-        for (let j = -n; j <= n; j++) {
-          if (((i % BLOCK) + BLOCK) % BLOCK === 0 || ((j % BLOCK) + BLOCK) % BLOCK === 0) continue;
-          const cx = i * g.cell, cy = j * g.cell, d = Math.hypot(cx, cy) / g.r;
-          if (d > 1) continue;
-          if (r() > 0.92 * Math.exp(-2.2 * d * d)) continue;
-          const s = g.cell * r.range(0.42, 0.82), ox = r.range(-0.1, 0.1) * g.cell, oy = r.range(-0.1, 0.1) * g.cell;
-          const center = fromMeters(g.origin, [cx + ox, cy + oy]);
-          if (prov && !prov.polygons.some(poly => TT.pointInRing(center, poly[0]))) continue;
-          if (lms.some(l => TT.distance(l, center) < 55)) continue;
-          const sx = s / 2, sy = (s / 2) * r.range(0.7, 1.3);
-          const poly = [[-sx, -sy], [sx, -sy], [sx, sy], [-sx, sy], [-sx, -sy]].map(m => fromMeters(g.origin, [cx + ox + m[0], cy + oy + m[1]]));
-          let h = 6 + g.maxH * Math.exp(-3.2 * d) * Math.exp(r.gauss() * 0.5) * 0.55;
-          if (r() < 0.025 * (1 - d)) h *= 2.2;
-          out.push({ polygon: poly, height: Math.round(h), lit: r() < 0.34, city: city.id });
-        }
-      }
-    }
-    return out;
-  };
-
   // ---------- กล้อง ----------
   function baseCamera(seq, type, pos, opts, r) {
     const prov = opts.prov || TT.provinceAt(pos) || TT.nearestProvince(pos);
@@ -207,22 +159,17 @@
     }
     // กลุ่มเมือง
     for (const city of TT.CITIES) {
-      const grid = cityGrid(city);
       const mix = MIX[city.mix];
-      const prov = TT.provinceAt([city.lon, city.lat]);
       let made = 0, tries = 0;
       while (made < city.n && tries < city.n * 6) {
         tries++;
         const k = r() < 0.75 ? 0.45 : 1;
-        let pos = [city.lon + (r.gauss() * city.spread * k) / 111, city.lat + (r.gauss() * city.spread * k) / 111];
-        let heading;
-        if (grid && TT.distance(pos, grid.origin) < grid.r) { const s = snapToStreet(grid, pos, r); pos = s.pos; heading = s.heading; }
+        const pos = [city.lon + (r.gauss() * city.spread * k) / 111, city.lat + (r.gauss() * city.spread * k) / 111];
         const p = TT.provinceAt(pos); if (!p) continue;
         const type = r.weighted(mix);
-        push(baseCamera(seq++, type, pos, { city: city.th, heading, prov: p }, r));
+        push(baseCamera(seq++, type, pos, { city: city.th, prov: p }, r));
         made++;
       }
-      void prov;
     }
     // ทางหลวง
     for (const hw of TT.HIGHWAYS) {
@@ -314,50 +261,6 @@
     return out;
   };
   TT.QUICK_REASONS = ['จุดเกิดอุบัติเหตุบ่อย', 'น้ำท่วมขังเป็นประจำ', 'ทางม้าลายหน้าโรงเรียน', 'พื้นที่เปลี่ยว ไฟสลัว', 'แหล่งท่องเที่ยวคนพลุกพล่าน', 'มีกล้องอยู่แล้ว ยินดีแชร์'];
-
-  // ---------- กระแสจราจร (TripsLayer) ----------
-  TT.HWY_PERIOD = 1200;
-  TT.buildHighwayTrips = function () {
-    const r = TT.rng(99); const trips = [];
-    for (const hw of TT.HIGHWAYS) {
-      const fwd = hw.pts.map(p => p.slice()); const cum = [0];
-      for (let i = 1; i < fwd.length; i++) cum.push(cum[i - 1] + TT.distance(fwd[i - 1], fwd[i]) / 1000);
-      const len = cum[cum.length - 1];
-      const n = Math.round(len / 9);
-      for (let k = 0; k < n; k++) {
-        const rev = r() < 0.5, off = r() * TT.HWY_PERIOD, lane = (rev ? -1 : 1) * 0.004;
-        const path = (rev ? fwd.slice().reverse() : fwd).map(p => [p[0] + lane, p[1] + lane]);
-        const ts = (rev ? cum.map(c => len - c).reverse() : cum);
-        for (const o of [off, off - TT.HWY_PERIOD]) trips.push({ path, timestamps: ts.map(t => t + o) });
-      }
-    }
-    return trips;
-  };
-  TT.CITY_PERIOD = 18;
-  TT.buildCityTrips = function () {
-    const r = TT.rng(1234); const trips = [];
-    for (const city of TT.CITIES) {
-      const g = cityGrid(city); if (!g) continue;
-      const step = g.cell * BLOCK, maxK = Math.floor((g.r * 0.8) / step);
-      const count = Math.round(40 + g.r / 30);
-      for (let k = 0; k < count; k++) {
-        let x = r.int(-maxK, maxK), y = r.int(-maxK, maxK), dir = r.int(0, 3);
-        const pts = [[x, y]];
-        for (let s = 0; s < r.int(8, 18); s++) {
-          if (r() < 0.35) dir = (dir + (r() < 0.5 ? 1 : 3)) % 4;
-          const nx = x + [1, 0, -1, 0][dir], ny = y + [0, 1, 0, -1][dir];
-          if (Math.abs(nx) > maxK || Math.abs(ny) > maxK) { dir = (dir + 2) % 4; continue; }
-          x = nx; y = ny; pts.push([x, y]);
-        }
-        const lane = (r() < 0.5 ? -1 : 1) * g.cell * 0.18;
-        const path = pts.map(([a, b]) => fromMeters(g.origin, [a * step + lane, b * step + lane]));
-        const ts = [0]; for (let i = 1; i < path.length; i++) ts.push(ts[i - 1] + TT.distance(path[i - 1], path[i]) / 1000);
-        const off = r() * TT.CITY_PERIOD;
-        for (const o of [off, off - TT.CITY_PERIOD, off + TT.CITY_PERIOD]) trips.push({ path, timestamps: ts.map(t => t + o), city: city.id });
-      }
-    }
-    return trips;
-  };
 
   // ---------- อัปเดตของเครือข่ายกล้อง (สถานะ/ติดตั้งใหม่/คำขอ) ----------
   TT.makeUpdate = function (cams, requests, r) {

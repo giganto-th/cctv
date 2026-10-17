@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ตาทิพย์ CCTV Thailand</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="ต้นแบบ UX/UI แพลตฟอร์มรวมกล้อง CCTV ทั่วประเทศไทยบนแผนที่ 3 มิติ (ข้อมูลจำลอง)">
+<meta name="description" content="ต้นแบบ UX/UI แพลตฟอร์มรวมกล้อง CCTV ทั่วประเทศไทยบนแผนที่ (ข้อมูลจำลอง)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600&family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -51,10 +51,7 @@
 </svg>
 
 <div id="app" data-mode="points">
-  <div id="street" hidden aria-label="แผนที่ถนน 2 มิติ"></div>
-  <div id="map" aria-label="แผนที่ 3 มิติของประเทศไทยแสดงตำแหน่งกล้อง CCTV" role="application"></div>
-  <div id="vignette" aria-hidden="true"></div>
-  <div id="labels" aria-hidden="true"></div>
+  <div id="map" aria-label="แผนที่ประเทศไทยแสดงตำแหน่งกล้อง CCTV"></div>
 
   <header id="topbar">
     <a class="brand" href="#" aria-label="ตาทิพย์ หน้าแรก" id="brand">
@@ -77,27 +74,18 @@
   <div id="stat-strip" class="mob-only" aria-live="polite"></div>
 
   <aside id="panel-layers" class="panel sheet" aria-label="ชั้นข้อมูลและตัวกรอง"></aside>
-  <aside id="panel-detail" class="panel sheet side" aria-label="รายละเอียด" hidden></aside>
   <aside id="panel-requests" class="panel sheet side" aria-label="คำขอปักหมุดกล้อง" hidden></aside>
 
   <section id="alerts" class="desk-only" aria-label="อัปเดตล่าสุดของเครือข่ายกล้อง"></section>
 
-  <div id="timebar" role="group" aria-label="ย้อนเวลาดูภาพรวม 24 ชั่วโมง"></div>
 
   <div id="map-ctrl" role="toolbar" aria-label="ควบคุมแผนที่">
-    <div class="ctrl-group view-switch" role="group" aria-label="แผนที่ฐาน">
-      <button type="button" data-act="view" data-v="3d" aria-pressed="true" aria-label="แผนที่ 3 มิติ"><svg><use href="#i-cube"/></svg><small>3D</small></button>
-      <button type="button" data-act="view" data-v="street" aria-pressed="false" aria-label="แผนที่ถนน"><svg><use href="#i-route"/></svg><small>ถนน</small></button>
-    </div>
     <div class="ctrl-group" id="zoom-group">
       <button type="button" id="ctrl-zoom-in" aria-label="ซูมเข้า"><svg><use href="#i-plus"/></svg></button>
       <button type="button" id="ctrl-zoom-out" aria-label="ซูมออก"><svg><use href="#i-minus"/></svg></button>
     </div>
     <div class="ctrl-group">
-      <button type="button" id="ctrl-compass" aria-label="หันทิศเหนือขึ้น"><svg id="compass-needle"><use href="#i-compass"/></svg></button>
-      <button type="button" id="ctrl-pitch" aria-label="สลับมุมมอง 2 มิติ หรือ 3 มิติ"><span id="pitch-label">3D</span></button>
       <button type="button" id="ctrl-locate" aria-label="ไปยังตำแหน่งของฉัน"><svg><use href="#i-locate"/></svg></button>
-      <button type="button" id="ctrl-tour" aria-label="ทัวร์ 3 มิติอัตโนมัติ"><svg><use href="#i-route"/></svg></button>
     </div>
   </div>
 
@@ -119,7 +107,10 @@
     <section class="panel placer-panel" id="placer-panel" aria-label="ขอปักหมุดกล้องใหม่"></section>
   </div>
 
-  <div id="tour-caption" hidden></div>
+  <div id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-scrim" data-act="close-modal"></div>
+    <div class="modal-box" id="modal-box" tabindex="-1"></div>
+  </div>
 
   <div id="palette" hidden role="dialog" aria-modal="true" aria-label="ค้นหา">
     <div class="palette-scrim" data-close></div>
@@ -145,14 +136,12 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/deck.gl@9.1.14/dist.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/geo-data.js"></script>
 <script src="js/util.js"></script>
 <script src="js/mock-data.js"></script>
 <script src="js/feed.js"></script>
 <script src="js/map.js"></script>
-<script src="js/street.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
 </body>
