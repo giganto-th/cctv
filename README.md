@@ -15,6 +15,11 @@
 
 ## เปิดดูต้นแบบ
 
+**ออนไลน์ (GitHub Pages):** https://giganto-th.github.io/cctv/ — deploy อัตโนมัติด้วย `.github/workflows/pages.yml` ทุกครั้งที่ push ไฟล์ใน `prototype/`
+(ตั้งค่าครั้งแรก: Settings → Pages → Build and deployment → Source เลือก **GitHub Actions**)
+
+**บนเครื่อง:**
+
 ```bash
 npm run dev          # เปิด http://localhost:5173 (ใช้ Node 20+ ไม่ต้องติดตั้งแพ็กเกจ)
 ```
