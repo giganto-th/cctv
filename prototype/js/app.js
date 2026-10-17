@@ -18,7 +18,7 @@
     dark: resolveDark(), mode: 'points', types: new Set(TT.TYPES.map(t => t.key)), statuses: new Set(Object.keys(TT.STATUS)),
     toggles: { traffic: true, buildings: true, cones: true, requests: true },
     hour: null, playing: false, hourView() { return this.hour ?? TT.hourNow(); },
-    selected: null, selectedProv: null, ptzAuto: true, aiOverlay: true, reportOpen: false, placing: null,
+    selected: null, selectedProv: null, ptzAuto: true, reportOpen: false, placing: null,
     panelOpen: !TT.isMobile(), sideOpen: false, introDone: false, reqTab: 'near', activeReq: null,
     highlight: null, highlightList: [], highlightVersion: 0, filterVersion: 0, statsVersion: 0, reqVersion: 0,
     favs: new Set(TT.store.get('favs', [])), votes: new Set(TT.store.get('votes', [])), recent: TT.store.get('recent', []),
@@ -96,8 +96,8 @@
   function navActive(k) { document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.toggle('active', b.dataset.nav === k)); }
 
   // ---------- เลือกกล้อง ----------
-  let feedTimer = null, insightTimer = null;
-  function stopFeed() { if (S.feed) S.feed.stop(); S.feed = null; clearInterval(feedTimer); clearInterval(insightTimer); }
+  let feedTimer = null;
+  function stopFeed() { if (S.feed) S.feed.stop(); S.feed = null; clearInterval(feedTimer); }
   function selectCamera(c, fly = true) {
     if (!c) return;
     if (S.placing) exitPlacing();
@@ -130,13 +130,11 @@
     const cv = $('#feed-canvas');
     if (cv) {
       S.feed = new TT.Feed(cv, c, () => S.hourView());
-      S.feed.ai = S.aiOverlay;
       S.feed.pan = ((c.headingLive - c.heading) / 90);
       S.feed.start();
       const tick = () => { const el = $('#osd-time'); if (!el) return; const d = TT.bangkokNow(); const hh = S.hour == null ? `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}` : TT.hhmm(S.hour) + ':00'; el.textContent = `${TT.thDate(d)} ${hh}`; };
       tick(); feedTimer = setInterval(tick, 1000);
     }
-    insightTimer = setInterval(() => { const el = $('#insights'); if (el && S.selected) el.innerHTML = U.insights(S, S.selected); }, 2000);
   }
   function closeDetail() {
     S.selected = null; S.selectedProv = null; setSide(null); M.render();
@@ -155,78 +153,27 @@
     if (m === 'requests' && S.vs.zoom > 11) M.flyTo({ zoom: 10.5 }, 900);
     renderLayersPanel(); M.render(); labelsDirty = true;
   }
-  function setHighlight(list, label) {
-    if (!list) { S.highlight = null; S.highlightList = []; $('#ai-chip').hidden = true; }
-    else {
-      S.highlight = new Set(list.map(c => c.id)); S.highlightList = list;
-      $('#ai-chip').innerHTML = `${TT.icon('sparkle')}<span>${label}</span><button class="icon-btn sm" data-act="ai-clear" aria-label="ล้างผลลัพธ์">${TT.icon('x')}</button>`;
-      $('#ai-chip').hidden = false;
-      if (S.mode !== 'points') setMode('points');
-      if (list.length) {
-        const xs = list.map(c => c.pos[0]), ys = list.map(c => c.pos[1]);
-        const b = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
-        const pad = 0.02; M.fitBounds([b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad], { maxZoom: 14.5, pitch: 48 });
-      }
-    }
-    S.highlightVersion++; M.render();
-  }
-
-  // ---------- AI ค้นหาภาษาไทย (จำลองด้วยกฎ) ----------
-  const PROV_ALIAS = { 'กรุงเทพ': 'bkk', 'กทม': 'bkk', 'bangkok': 'bkk', 'โคราช': 'nma', 'อยุธยา': 'aya', 'โคราช ': 'nma', 'หาดใหญ่': 'ska', 'พัทยา': 'cbi', 'หัวหิน': 'pkn', 'แม่สอด': 'tak', 'ปาย': 'msn' };
-  TT.aiParse = function (q) {
-    const s = q.toLowerCase().trim(); if (s.length < 3) return null;
-    const out = { types: null, conds: [], labels: [], place: null, status: null };
-    const addType = (k) => { out.types = out.types || new Set(); out.types.add(k); };
-    if (/รถติด|ติดขัด|จราจร|traffic|รถเยอะ/.test(s)) { addType('traffic'); if (/ติด|หนาแน่น|เยอะ/.test(s)) { out.conds.push(c => TT.metrics(c, S.hourView()).congestion > 0.62); out.labels.push('ที่รถติดขัด'); } }
-    if (/น้ำท่วม|ระดับน้ำ|น้ำขัง|flood/.test(s)) { addType('flood'); if (/สูง|ท่วม|วิกฤต|ขัง/.test(s)) { out.conds.push(c => TT.metrics(c, S.hourView()).water > 12); out.labels.push('ที่ระดับน้ำเกิน 12 ซม.'); } }
-    if (/ฝุ่น|pm|หมอกควัน|ไฟป่า|haze/.test(s)) { addType('haze'); if (/สูง|เกิน|อันตราย|หนัก/.test(s)) { out.conds.push(c => TT.metrics(c, S.hourView()).pm25 > 50); out.labels.push('ที่ PM2.5 เกิน 50'); } }
-    if (/ทะเล|หาด|ท่องเที่ยว|เที่ยว|beach/.test(s)) addType('tourism');
-    if (/คนเยอะ|แออัด|คนแน่น|พลุกพล่าน/.test(s)) { addType('tourism'); out.conds.push(c => TT.metrics(c, S.hourView()).crowd > 0.55); out.labels.push('ที่ผู้คนหนาแน่น'); }
-    if (/ปลอดภัย|เปลี่ยว|อาชญากรรม|safety/.test(s)) addType('safety');
-    if (/ชุมชน|แชร์/.test(s)) addType('community');
-    if (/ออฟไลน์|เสีย|ใช้งานไม่ได้|ดับ|offline/.test(s)) { out.status = 'offline'; out.labels.push('ที่ออฟไลน์'); }
-    if (/4k/.test(s)) { out.conds.push(c => c.res === '4K'); out.labels.push('ความละเอียด 4K'); }
-    if (/ptz|หมุนได้/.test(s)) { out.conds.push(c => c.ptz); out.labels.push('แบบหมุนได้ (PTZ)'); }
-    // สถานที่
-    for (const [k, id] of Object.entries(PROV_ALIAS)) if (s.includes(k)) { const p = TT_GEO.provinces.find(x => x.id === id); out.place = { label: p.th, test: c => c.prov === id }; }
-    if (!out.place) for (const p of TT_GEO.provinces) if (s.includes(p.th) || s.includes(p.en.toLowerCase())) { out.place = { label: p.th, test: c => c.prov === p.id }; break; }
-    if (!out.place) for (const [r] of Object.entries(TT.REGIONS)) if (s.includes(r) || s.includes('ภาค' + r)) { out.place = { label: 'ภาค' + r, test: c => c.region === r }; break; }
-    if (!out.place && /ใกล้ฉัน|แถวนี้|ใกล้ๆ|ตรงนี้/.test(s)) { const ctr = [S.vs.longitude, S.vs.latitude]; out.place = { label: 'ใกล้มุมมองนี้ 5 กม.', test: c => TT.distance(c.pos, ctr) < 5000 }; }
-    if (!out.types && !out.conds.length && !out.status) return null;
-    let items = S.cams.filter(c => (!out.types || out.types.has(c.type)) && (!out.status || c.status === out.status) && (!out.place || out.place.test(c)) && out.conds.every(f => f(c)));
-    const h = S.hourView();
-    const note = c => { const m = TT.metrics(c, h); return c.type === 'traffic' ? `ความหนาแน่น ${Math.round(m.congestion * 100)}%` : c.type === 'flood' ? `ระดับน้ำ ${m.water} ซม.` : c.type === 'haze' ? `PM2.5 ${m.pm25} µg/m³` : c.type === 'tourism' ? `ผู้คน ${Math.round(m.crowd * 100)}%` : TT.STATUS[c.status].th; };
-    const score = c => { const m = TT.metrics(c, h); return c.type === 'traffic' ? m.congestion : c.type === 'flood' ? m.water : c.type === 'haze' ? m.pm25 : m.crowd; };
-    items = items.sort((a, b) => score(b) - score(a)).map(c => ({ cam: c, note: note(c) }));
-    const typeTh = out.types ? [...out.types].map(k => TT.TYPE[k].th).join(' / ') : '';
-    const summary = items.length
-      ? `พบ <b>${TT.fmt(items.length)} กล้อง</b>${typeTh ? 'ประเภท' + typeTh : ''} ${out.labels.join(' ')}${out.place ? ' ใน' + out.place.label : ''} ตัวที่น่าจับตาที่สุดคือ <b>${TT.esc(items[0].cam.name)}</b> (${items[0].note})`
-      : `ยังไม่พบกล้อง${typeTh ? 'ประเภท' + typeTh : ''} ${out.labels.join(' ')}${out.place ? ' ใน' + out.place.label : ''} ณ เวลานี้ ลองเลื่อนแถบเวลาไปช่วงเร่งด่วน 07:00–09:00 หรือ 17:00–19:00`;
-    const chip = `${typeTh || 'กล้อง'} ${out.labels.join(' ')}${out.place ? ' · ' + out.place.label : ''} (${TT.fmt(items.length)})`;
-    return { summary, items, chip };
-  };
 
   // ---------- palette ----------
-  let palMode = 'search', palSel = 0, palAI = null;
+  let palMode = 'search', palSel = 0;
   function openPalette(mode = 'search', q = '') {
     palMode = mode; $('#palette').hidden = false;
-    const inp = $('#palette-q'); inp.value = q; inp.placeholder = mode === 'jump' ? 'ค้นหาจังหวัด เมือง หรือสถานที่เพื่อย้ายหมุด' : 'ค้นหาจังหวัด สถานที่ รหัสกล้อง หรือพิมพ์คำถาม';
+    const inp = $('#palette-q'); inp.value = q; inp.placeholder = mode === 'jump' ? 'ค้นหาจังหวัด เมือง หรือสถานที่เพื่อย้ายหมุด' : 'ค้นหาจังหวัด เมือง ชื่อจุด หรือรหัสกล้อง';
     renderPalette(); setTimeout(() => inp.focus(), 30);
   }
   function closePalette() { $('#palette').hidden = true; if (palMode !== 'jump') navActive(S.sideOpen ? 'map' : 'map'); }
   function renderPalette() {
     const q = $('#palette-q').value.trim(), box = $('#palette-results');
     palSel = 0;
-    if (!q) { palAI = null; box.innerHTML = U.paletteEmpty(S); return; }
+    if (!q) { box.innerHTML = U.paletteEmpty(S); return; }
     const s = q.toLowerCase();
-    palAI = palMode === 'search' ? TT.aiParse(q) : null;
     const provs = TT_GEO.provinces.filter(p => p.th.includes(q) || p.en.toLowerCase().includes(s)).slice(0, 5);
     const cities = TT.CITIES.filter(c => c.th.includes(q) && !provs.some(p => p.th === c.th)).slice(0, 4);
     const cams = palMode === 'search' ? S.cams.filter(c => c.name.includes(q) || c.id.toLowerCase().includes(s)).sort((a, b) => b.landmark - a.landmark).slice(0, 8) : [];
-    box.innerHTML = U.paletteResults(S, q, { ai: palAI, provs, cities, cams });
+    box.innerHTML = U.paletteResults(S, q, { provs, cities, cams });
     markPal();
   }
-  function palItems() { return [...document.querySelectorAll('#palette-results [data-act="pal-prov"], #palette-results [data-act="pal-city"], #palette-results .pal-item[data-act="cam"], #palette-results [data-act="ai-apply"]')]; }
+  function palItems() { return [...document.querySelectorAll('#palette-results [data-act="pal-prov"], #palette-results [data-act="pal-city"], #palette-results .pal-item[data-act="cam"]')]; }
   function markPal() { palItems().forEach((el, i) => el.setAttribute('aria-selected', i === palSel)); const el = palItems()[palSel]; el && el.scrollIntoView({ block: 'nearest' }); }
   function pushRecent(q) { if (!q) return; S.recent = [q, ...S.recent.filter(x => x !== q)].slice(0, 6); TT.store.set('recent', S.recent); }
   function goProvince(id) {
@@ -364,7 +311,7 @@
     { t: 'กรุงเทพมหานคร', d: 'ย่านปทุมวัน–สุขุมวิท กล้องหนาแน่นที่สุดของประเทศ เส้นแสงคือกระแสจราจรจำลอง', v: { longitude: 100.5452, latitude: 13.7330, zoom: 14.7, pitch: 64, bearing: 32 } },
     { t: 'เชียงใหม่', d: 'จุดเฝ้าระวังหมอกควันและไฟป่ารอบดอยสุเทพ', v: { longitude: 98.9700, latitude: 18.7930, zoom: 13.9, pitch: 60, bearing: -24 } },
     { t: 'ขอนแก่น', d: 'ศูนย์กลางภาคอีสาน บนถนนมิตรภาพ', v: { longitude: 102.8359, latitude: 16.4400, zoom: 14.2, pitch: 58, bearing: 12 } },
-    { t: 'พัทยา', d: 'เมืองท่องเที่ยวชายฝั่งตะวันออก ดูความหนาแน่นผู้คนแบบเรียลไทม์', v: { longitude: 100.8800, latitude: 12.9250, zoom: 14.2, pitch: 62, bearing: -38 } },
+    { t: 'พัทยา', d: 'เมืองท่องเที่ยวชายฝั่งตะวันออก กล้องชายหาดและถนนคนเดิน', v: { longitude: 100.8800, latitude: 12.9250, zoom: 14.2, pitch: 62, bearing: -38 } },
     { t: 'ภูเก็ต', d: 'ไข่มุกอันดามัน กล้องท่องเที่ยวและสะพานสารสิน', v: { longitude: 98.3700, latitude: 7.9300, zoom: 11.4, pitch: 55, bearing: 20 } },
     { t: 'ทั่วประเทศ', d: 'กล้องจำลองกว่า 4,600 ตัว ใน 77 จังหวัด', v: null },
   ];
@@ -410,7 +357,7 @@
     if (h == null && rg) rg.value = TT.hourNow();
     const rec = $('#osd-rec'); if (rec) { rec.textContent = S.hour == null ? 'LIVE' : 'บันทึก'; rec.classList.toggle('past', S.hour != null); }
     const now = performance.now();
-    if (now - lastHourRender > 120) { lastHourRender = now; M.setHour(); const el = $('#insights'); if (el && S.selected) el.innerHTML = U.insights(S, S.selected); }
+    if (now - lastHourRender > 120) { lastHourRender = now; M.setHour(); }
   }
   let playRaf = 0;
   function togglePlay() {
@@ -424,13 +371,13 @@
     const b = $('#timebar .play'); b.innerHTML = TT.icon(S.playing ? 'pause' : 'play'); b.setAttribute('aria-label', S.playing ? 'หยุดเล่น' : 'เล่นย้อนดู 24 ชั่วโมง');
   }
 
-  // ---------- การแจ้งเตือน AI ----------
+  // ---------- อัปเดตล่าสุดของเครือข่ายกล้อง ----------
   const alertRng = TT.rng(Date.now() % 1e6);
   const alerts = [];
   function pushAlert() {
-    const a = TT.makeAlert(S.cams, S.hourView(), alertRng); if (!a) return;
+    const a = TT.makeUpdate(S.cams, S.requests, alertRng); if (!a) return;
     alerts.unshift(a); alerts.length = Math.min(alerts.length, 2);
-    $('#alerts').innerHTML = `<div class="alerts-title">${TT.icon('sparkle')}AI เฝ้าระวังแบบเรียลไทม์</div>` + alerts.map(U.alert).join('');
+    $('#alerts').innerHTML = `<div class="alerts-title">${TT.icon('clock')}อัปเดตล่าสุด</div>` + alerts.map(U.alert).join('');
   }
 
   // ---------- ป้ายชื่อบนแผนที่ ----------
@@ -524,11 +471,10 @@
       case 'close-detail': closeDetail(); break;
       case 'close-requests': setSide(null); S.activeReq = null; break;
       case 'cam': { const c = S.camById.get(v); closePalette(); if (S.placing) exitPlacing(); selectCamera(c); break; }
-      case 'ai': S.aiOverlay = !S.aiOverlay; t.setAttribute('aria-pressed', S.aiOverlay); if (S.feed) S.feed.ai = S.aiOverlay; break;
       case 'ptz': { const c = S.selected; c.headingLive = (c.headingLive + parseFloat(v) + 360) % 360; S.ptzAuto = false; if (S.feed) S.feed.pan = TT.clamp(TT.angleDiff(c.headingLive, c.heading) * Math.sign(((c.headingLive - c.heading + 540) % 360) - 180) / 90, -0.5, 0.5); $('#ptz-read').textContent = Math.round(c.headingLive) + '°'; M.render(); break; }
       case 'fullscreen': { const f = $('#feed'); if (f && f.requestFullscreen) f.requestFullscreen().catch(() => TT.toast('อุปกรณ์นี้ไม่รองรับโหมดเต็มจอ')); else TT.toast('อุปกรณ์นี้ไม่รองรับโหมดเต็มจอ'); break; }
       case 'share': TT.copy(`ตาทิพย์ · ${S.selected.name} (${S.selected.id}) ${location.href.split('#')[0]}#cam-${S.selected.id}`, 'คัดลอกลิงก์กล้องแล้ว'); break;
-      case 'fav': { const id = S.selected.id; S.favs.has(id) ? S.favs.delete(id) : S.favs.add(id); TT.store.set('favs', [...S.favs]); t.setAttribute('aria-pressed', S.favs.has(id)); t.lastChild.textContent = S.favs.has(id) ? 'ติดตามแล้ว' : 'ติดตาม'; TT.toast(S.favs.has(id) ? 'จะแจ้งเตือนเมื่อ AI พบเหตุผิดปกติที่กล้องนี้' : 'เลิกติดตามแล้ว'); break; }
+      case 'fav': { const id = S.selected.id; S.favs.has(id) ? S.favs.delete(id) : S.favs.add(id); TT.store.set('favs', [...S.favs]); t.setAttribute('aria-pressed', S.favs.has(id)); t.lastChild.textContent = S.favs.has(id) ? 'ติดตามแล้ว' : 'ติดตาม'; TT.toast(S.favs.has(id) ? 'จะแจ้งเตือนเมื่อกล้องนี้ออฟไลน์หรือกลับมาออนไลน์' : 'เลิกติดตามแล้ว'); break; }
       case 'report': S.reportOpen = !S.reportOpen; { const sc = $('#panel-detail .detail-body').scrollTop; renderDetail(); $('#panel-detail .detail-body').scrollTop = sc; } break;
       case 'copy-coord': TT.copy(`${S.selected.pos[1].toFixed(6)}, ${S.selected.pos[0].toFixed(6)}`, 'คัดลอกพิกัดแล้ว'); break;
       case 'copy-center': TT.copy(`${S.vs.latitude.toFixed(6)}, ${S.vs.longitude.toFixed(6)}`, 'คัดลอกพิกัดแล้ว'); break;
@@ -557,8 +503,6 @@
       case 'pal-fill': $('#palette-q').value = v; renderPalette(); $('#palette-q').focus(); break;
       case 'pal-prov': goProvince(v); break;
       case 'pal-city': goCity(v); break;
-      case 'ai-apply': if (palAI) { pushRecent($('#palette-q').value.trim()); setHighlight(palAI.items.map(i => i.cam), palAI.chip); closePalette(); } break;
-      case 'ai-clear': setHighlight(null); break;
       case 'play': togglePlay(); break;
       case 'live': if (S.playing) togglePlay(); setHour(null); break;
       case 'tour-next': clearTimeout(tourTimer); nextTour(); break;
@@ -586,13 +530,13 @@
       if (S.sideOpen) return S.selected || S.selectedProv ? closeDetail() : setSide(null);
     }
     if (!$('#palette').hidden && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); const n = palItems().length; if (n) { palSel = (palSel + (e.key === 'ArrowDown' ? 1 : n - 1)) % n; markPal(); } }
-    if (!$('#palette').hidden && e.key === 'Enter') { const el = palItems()[palSel]; if (el) { e.preventDefault(); el.click(); } else if (palAI) { e.preventDefault(); document.querySelector('[data-act="ai-apply"]')?.click(); } }
+    if (!$('#palette').hidden && e.key === 'Enter') { const el = palItems()[palSel]; if (el) { e.preventDefault(); el.click(); } }
     if (e.target.classList && e.target.classList.contains('req') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.target.click(); }
   });
   document.querySelectorAll('#palette [data-close]').forEach(el => el.addEventListener('click', closePalette));
 
   $('#search-trigger').addEventListener('click', () => openPalette('search'));
-  $('#brand').addEventListener('click', e => { e.preventDefault(); stopTour(); if (S.placing) exitPlacing(); closeDetail(); setHighlight(null); M.flyTo(overviewView(), 2200); });
+  $('#brand').addEventListener('click', e => { e.preventDefault(); stopTour(); if (S.placing) exitPlacing(); closeDetail(); M.flyTo(overviewView(), 2200); });
   $('#btn-request').addEventListener('click', startPlacing);
   $('#btn-requests').addEventListener('click', () => (!$('#panel-requests').hidden ? setSide(null) : openRequests()));
   $('#btn-layers').addEventListener('click', () => { S.panelOpen = !S.panelOpen; renderLayersPanel(); });

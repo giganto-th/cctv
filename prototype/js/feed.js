@@ -1,15 +1,11 @@
-/* ตาทิพย์ — ภาพสดจำลองจากกล้อง (วาดด้วย canvas ล้วน ไม่มีวิดีโอจริง)
-   แสดงแนวคิด: ภาพสด + AI ตรวจจับวัตถุ + เบลอใบหน้า/ทะเบียนอัตโนมัติ (PDPA) */
+/* ตาทิพย์ — ภาพสดจำลองจากกล้อง (วาดด้วย canvas ล้วน ไม่มีวิดีโอจริง) */
 (function (TT) {
   'use strict';
 
+  // ขนาดวัตถุในฉาก (เมตร)
   const CLASS = {
-    car: { th: 'รถยนต์', w: 1.8, h: 1.5, color: '#FFB238' },
-    moto: { th: 'จยย.', w: 0.75, h: 1.45, color: '#3FD6CF' },
-    bus: { th: 'รถโดยสาร', w: 2.5, h: 3.2, color: '#FF6FA8' },
-    truck: { th: 'รถบรรทุก', w: 2.4, h: 2.8, color: '#FF6FA8' },
-    person: { th: 'บุคคล', w: 0.55, h: 1.65, color: '#8CD65A' },
-    boat: { th: 'เรือ', w: 6, h: 1.4, color: '#5C9CFF' },
+    car: { w: 1.8, h: 1.5 }, moto: { w: 0.75, h: 1.45 }, bus: { w: 2.5, h: 3.2 },
+    truck: { w: 2.4, h: 2.8 }, person: { w: 0.55, h: 1.65 },
   };
   const CAR_COLORS = ['#E8ECEF', '#C9CED3', '#2B2F33', '#8B1E24', '#1F3E6E', '#D9D2C3', '#5D6A73', '#F2F2F2', '#B5462E'];
 
@@ -24,7 +20,7 @@
     constructor(canvas, cam, getHour) {
       this.cv = canvas; this.ctx = canvas.getContext('2d'); this.cam = cam; this.getHour = getHour;
       this.r = TT.rng(Math.floor(cam.seed * 1e9));
-      this.scene = sceneOf(cam); this.ai = true; this.pan = 0; this.zoom = 1;
+      this.scene = sceneOf(cam); this.pan = 0; this.zoom = 1;
       this.objs = []; this.stats = {}; this.raf = 0; this.lastT = 0; this.acc = 0;
       this.skyline = Array.from({ length: 26 }, () => ({ w: this.r.range(0.03, 0.08), h: this.r.range(0.08, 0.42), lit: Array.from({ length: 30 }, () => this.r() < 0.4) }));
       this.hills = [0, 1, 2].map(k => Array.from({ length: 14 }, () => this.r.range(0.05, 0.22) * (1 - k * 0.2)));
@@ -60,9 +56,9 @@
       const r = this.r, away = r() < 0.5, k = r.weighted({ car: 62, moto: 30, bus: 4, truck: 4 });
       const lanes = away ? [-5.4, -1.9] : [1.9, 5.4];
       const X = r.pick(lanes) + (k === 'moto' ? r.range(-1.2, 1.2) : r.range(-0.3, 0.3));
-      return { k, X, Z, away, color: k === 'bus' ? r.pick(['#2E6FA8', '#E8ECEF', '#C0563E']) : k === 'truck' ? '#D9D2C3' : r.pick(CAR_COLORS), conf: r.range(0.82, 0.98), sp: r.range(0.85, 1.15) };
+      return { k, X, Z, away, color: k === 'bus' ? r.pick(['#2E6FA8', '#E8ECEF', '#C0563E']) : k === 'truck' ? '#D9D2C3' : r.pick(CAR_COLORS), sp: r.range(0.85, 1.15) };
     }
-    newPerson(Z) { const r = this.r, side = r() < 0.5 ? -1 : 1; return { k: 'person', X: side * r.range(8.6, 10.5), Z, v: r.range(0.6, 1.3) * (r() < 0.5 ? -1 : 1), color: r.pick(['#C0563E', '#2E6FA8', '#F2C14E', '#E8ECEF', '#3B8F5A', '#7650D6']), conf: r.range(0.78, 0.95) }; }
+    newPerson(Z) { const r = this.r, side = r() < 0.5 ? -1 : 1; return { k: 'person', X: side * r.range(8.6, 10.5), Z, v: r.range(0.6, 1.3) * (r() < 0.5 ? -1 : 1), color: r.pick(['#C0563E', '#2E6FA8', '#F2C14E', '#E8ECEF', '#3B8F5A', '#7650D6']) }; }
 
     start() {
       const reduce = TT.reducedMotion();
@@ -169,21 +165,17 @@
       for (const o of objs) { this.drawObj(o, night, day); if (o.Z < 110) counts[o.k]++; }
       if (this.cam.type === 'flood') this.drawFlood(m, day);
       if (this.cam.region === 'เหนือ' && m.pm25 > 45) this.drawHaze(m.pm25, day);
-      if (this.ai) for (const o of objs) if (o.Z < (o.k === 'person' ? 60 : 105)) this.drawBox(o);
       this.stats = counts;
     }
     drawObj(o, night, day) {
       const { ctx } = this, c = CLASS[o.k], p = this.proj(o.X, o.Z);
       const w = c.w * p.s, h = c.h * p.s, x = p.x - w / 2, y = p.y - h;
-      o.box = [x, y, w, h];
       if (w < 0.6) return;
       if (o.k === 'person') {
         ctx.fillStyle = this.mix('#11161B', o.color, 0.25 + day * 0.6);
         ctx.beginPath(); ctx.roundRect(x, y + h * 0.22, w, h * 0.78, w * 0.4); ctx.fill();
-        // เบลอใบหน้า (mosaic)
-        const hs = Math.max(2, w * 0.7); ctx.fillStyle = 'rgba(160,170,178,0.9)';
-        for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) { ctx.globalAlpha = 0.6 + ((i + j) % 2) * 0.3; ctx.fillRect(p.x - hs / 2 + i * hs / 2, y + j * hs / 2, hs / 2, hs / 2); }
-        ctx.globalAlpha = 1; return;
+        ctx.fillStyle = this.mix('#2A2622', '#C8A27E', 0.3 + day * 0.6); ctx.beginPath(); ctx.arc(p.x, y + w * 0.35, w * 0.38, 0, 7); ctx.fill();
+        return;
       }
       ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(x - w * 0.05, p.y - h * 0.08, w * 1.1, h * 0.1);
       ctx.fillStyle = this.mix('#0E1216', o.color, 0.35 + day * 0.65);
@@ -199,21 +191,6 @@
           ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(lx, ly, rr * 3, 0, 7); ctx.fill();
         }
       }
-      // ทะเบียนรถถูกเบลอ
-      if (!o.away && o.k !== 'moto' && w > 18) {
-        const pw = w * 0.32, ph = h * 0.14, px = p.x - pw / 2, py = y + h * 0.8;
-        for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) { ctx.fillStyle = (i + j) % 2 ? 'rgba(170,176,182,0.95)' : 'rgba(120,126,132,0.95)'; ctx.fillRect(px + i * pw / 4, py + j * ph / 2, pw / 4 + 0.5, ph / 2 + 0.5); }
-      }
-    }
-    drawBox(o) {
-      if (!o.box) return;
-      const { ctx } = this, [x, y, w, h] = o.box, c = CLASS[o.k];
-      if (w < 6) return;
-      ctx.strokeStyle = c.color; ctx.lineWidth = 1.4; ctx.strokeRect(x - 2, y - 2, w + 4, h + 4);
-      const fs = Math.max(9, Math.min(13, w * 0.22)); ctx.font = `600 ${fs}px "JetBrains Mono", monospace`;
-      const label = `${c.th} ${(o.conf || 0.9).toFixed(2)}`; const tw = ctx.measureText(label).width;
-      ctx.fillStyle = c.color; ctx.fillRect(x - 2, y - fs - 6, tw + 8, fs + 4);
-      ctx.fillStyle = '#0B1218'; ctx.fillText(label, x + 2, y - 6);
     }
     drawFlood(m, day) {
       const { ctx, W, H } = this, lvl = m.water;
@@ -230,7 +207,6 @@
       ctx.fillStyle = '#F2F4F5'; ctx.fillRect(b.x - pw / 2, t.y, pw, b.y - t.y);
       for (let cm = 0; cm <= 120; cm += 10) { const yy = this.proj(7.6, 16, cm / 100).y; ctx.fillStyle = cm % 50 === 0 ? '#E5484D' : '#2B2F33'; ctx.fillRect(b.x - pw / 2, yy - 1, cm % 50 === 0 ? pw : pw * 0.6, 2); }
       if (lvl > 0) { const wy = this.proj(7.6, 16, lvl / 100).y; ctx.fillStyle = 'rgba(60,140,200,0.55)'; ctx.fillRect(b.x - pw / 2, wy, pw, b.y - wy); }
-      if (this.ai) { ctx.strokeStyle = '#38D6CF'; ctx.lineWidth = 1.4; ctx.strokeRect(b.x - pw, t.y - 4, pw * 2, b.y - t.y + 8); ctx.font = '600 11px "JetBrains Mono", monospace'; const s = `ระดับน้ำ ${lvl} ซม.`; ctx.fillStyle = '#38D6CF'; ctx.fillRect(b.x - pw, t.y - 20, ctx.measureText(s).width + 8, 15); ctx.fillStyle = '#0B1218'; ctx.fillText(s, b.x - pw + 4, t.y - 9); }
     }
     drawHaze(pm, day) { const a = TT.clamp((pm - 30) / 160, 0, 0.55); this.ctx.fillStyle = day > 0.3 ? `rgba(196,170,140,${a})` : `rgba(60,50,45,${a})`; this.ctx.fillRect(0, 0, this.W, this.H); }
     drawRain(v) {
@@ -257,16 +233,15 @@
         if (o.k === 'boat') {
           const y = this.hy + (seaBottom - this.hy) * 0.35, x = W / 2 + o.X * 4, w = 34;
           ctx.fillStyle = night ? '#1A222A' : '#6B4A2E'; ctx.beginPath(); ctx.moveTo(x - w / 2, y); ctx.lineTo(x + w / 2, y - 4); ctx.lineTo(x + w / 2 - 6, y + 5); ctx.lineTo(x - w / 2 + 4, y + 5); ctx.fill();
-          o.box = [x - w / 2, y - 6, w, 12]; o.conf = 0.88; counts.boat++; continue;
+          counts.boat++; continue;
         }
         const s = (o.Z ? 1 / (o.Z / 9) : 1), y = seaBottom + (H - seaBottom) * TT.clamp(1 - o.Z / 66, 0.02, 1), x = W / 2 + o.X * 14 * (0.4 + (y - seaBottom) / (H - seaBottom));
         const h = 10 + (y - seaBottom) * 0.22, w = h * 0.34;
         ctx.fillStyle = this.mix('#14181C', o.color, 0.3 + day * 0.6); ctx.beginPath(); ctx.roundRect(x - w / 2, y - h * 0.78, w, h * 0.78, w * 0.4); ctx.fill();
-        ctx.fillStyle = 'rgba(160,170,178,0.85)'; ctx.fillRect(x - w * 0.45, y - h, w * 0.9, h * 0.24);
-        o.box = [x - w / 2, y - h, w, h]; o.conf = o.conf || 0.86; counts.person++;
+        ctx.fillStyle = this.mix('#2A2622', '#C8A27E', 0.3 + day * 0.6); ctx.beginPath(); ctx.arc(x, y - h * 0.9, w * 0.42, 0, 7); ctx.fill();
+        counts.person++;
         void s;
       }
-      if (this.ai) for (const o of objs) this.drawBox(o);
       this.stats = counts;
     }
     drawForest(day, night, m) {
@@ -287,11 +262,6 @@
         if (night) { const gl = ctx.createRadialGradient(pl.x * W, this.hy + H * 0.17, 0, pl.x * W, this.hy + H * 0.17, 14); gl.addColorStop(0, 'rgba(255,120,40,0.9)'); gl.addColorStop(1, 'rgba(255,90,20,0)'); ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(pl.x * W, this.hy + H * 0.17, 14, 0, 7); ctx.fill(); }
       }
       this.drawHaze(m.pm25 + 20, day);
-      if (this.ai && m.pm25 > 50) {
-        const pl = this.plumes[0], x = pl.x * W - 22, y = this.hy + H * 0.08;
-        ctx.strokeStyle = '#FF7A45'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, 44, H * 0.14);
-        ctx.font = '600 11px "JetBrains Mono", monospace'; const s = 'จุดความร้อน 0.81'; ctx.fillStyle = '#FF7A45'; ctx.fillRect(x, y - 16, ctx.measureText(s).width + 8, 15); ctx.fillStyle = '#0B1218'; ctx.fillText(s, x + 4, y - 5);
-      }
       this.stats = { smoke: this.plumes.length };
     }
   }

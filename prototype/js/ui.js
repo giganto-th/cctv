@@ -14,7 +14,7 @@
     const modes = [['points', 'camera', 'จุดกล้อง'], ['hex', 'cube', 'หนาแน่น 3D'], ['province', 'map', 'รายจังหวัด'], ['requests', 'inbox', 'คำขอ']];
     const legend = {
       points: '<div class="attr">แตะจุดเพื่อดูภาพสด ซูมใกล้ระดับถนนเพื่อเห็นกรวยมุมมองของกล้องแต่ละตัว</div>',
-      hex: `<div class="legend-ramp" style="background:${TT.map.rampCss()}"></div><div class="legend-scale"><span>กล้องน้อย</span><span>ความสูงเปลี่ยนตามช่วงเวลา</span><span>มาก</span></div>`,
+      hex: `<div class="legend-ramp" style="background:${TT.map.rampCss()}"></div><div class="legend-scale"><span>กล้องน้อย</span><span>สีและความสูงตามจำนวนกล้อง</span><span>มาก</span></div>`,
       province: `<div class="legend-ramp" style="background:${TT.map.rampCss()}"></div><div class="legend-scale"><span>0</span><span>กล้องต่อ 100 ตร.กม.</span><span>${TT.fmt(Math.round(st.maxDensity))}</span></div>`,
       requests: `<div class="legend-ramp" style="background:${TT.map.heatCss()}"></div><div class="legend-scale"><span>คำขอน้อย</span><span>ถ่วงน้ำหนักด้วยเสียงโหวต</span><span>มาก</span></div>`,
     }[S.mode];
@@ -82,15 +82,14 @@
       <div class="detail-body">
         ${feed}
         ${c.status === 'offline' ? '' : `<div class="feed-tools">
-          <button type="button" class="chip" data-act="ai" aria-pressed="${S.aiOverlay}">${I('sparkle')}AI ตรวจจับ</button>
           ${c.ptz ? `<div class="ptz" role="group" aria-label="หมุนกล้อง"><button type="button" data-act="ptz" data-v="-15" aria-label="หมุนซ้าย">${I('chev-l')}</button><span id="ptz-read">${Math.round(c.headingLive ?? c.heading)}°</span><button type="button" data-act="ptz" data-v="15" aria-label="หมุนขวา">${I('chev-r')}</button></div>` : ''}
           <span class="grow"></span>
           <button type="button" class="icon-btn sm" data-act="fullscreen" aria-label="เต็มจอ">${I('expand')}</button>
         </div>`}
-        <div class="privacy-note">${I('eye')}<span>ระบบเบลอใบหน้าและป้ายทะเบียนอัตโนมัติก่อนเผยแพร่ ตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</span></div>
+        <div class="privacy-note">${I('eye')}<span>ภาพจากหน่วยงานเจ้าของกล้อง เผยแพร่ภายใต้ พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA) แจ้งภาพที่ละเมิดความเป็นส่วนตัวได้ที่ปุ่มรายงาน</span></div>
         <div>
-          <div class="section-title" style="margin-bottom:8px"><span class="eyebrow">วิเคราะห์โดย AI · ${TT.hhmm(S.hourView())} น.</span></div>
-          <div class="insights" id="insights">${U.insights(S, c)}</div>
+          <div class="section-title" style="margin-bottom:8px"><span class="eyebrow">สถานะการเชื่อมต่อ 24 ชั่วโมง</span></div>
+          ${U.uptime(c)}
         </div>
         <div class="actions">
           <a href="https://www.google.com/maps/search/?api=1&query=${c.pos[1].toFixed(6)},${c.pos[0].toFixed(6)}" target="_blank" rel="noopener">${I('nav')}นำทาง</a>
@@ -117,38 +116,16 @@
       </div>`;
   };
 
-  U.insights = function (S, c) {
-    const h = S.hourView(), m = TT.metrics(c, h), f = S.feed && S.feed.stats || {};
-    const trend = (fn, color) => {
-      const vals = Array.from({ length: 49 }, (_, i) => fn(TT.metrics(c, i / 2)));
-      const p = TT.sparkPath(vals, 300, 44, 4), x = (h / 24) * 300;
-      return `<svg class="trend" viewBox="0 0 300 44" preserveAspectRatio="none" aria-hidden="true"><path d="${p} L300,44 L0,44 Z" fill="${color}" fill-opacity=".12" stroke="none"/><path d="${p}" stroke="${color}" stroke-width="1.6" vector-effect="non-scaling-stroke"/><line x1="${x}" x2="${x}" y1="0" y2="44" stroke="var(--fg-3)" stroke-dasharray="2 3" vector-effect="non-scaling-stroke"/></svg>
-        <div class="legend-scale"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>`;
-    };
-    const card = (k, v, extra = '', cls = '', icon = 'sparkle') => `<div class="insight ${cls}"><span class="k">${I(icon)}${k}</span><span class="v">${v}</span>${extra}</div>`;
-    if (c.type === 'haze') {
-      const [lab, col] = TT.pmLabel(m.pm25);
-      return card('PM2.5', `${m.pm25}<small>µg/m³</small>`, `<span style="font-size:.75rem;color:${col};font-weight:600">${lab}</span>`) +
-        card('จุดความร้อนรอบ 5 กม.', `${Math.max(0, Math.round((m.pm25 - 40) / 18))}<small>จุด</small>`, '<span class="muted" style="font-size:.75rem">จากภาพ + ดาวเทียม</span>', '', 'alert') +
-        card('แนวโน้ม PM2.5 วันนี้', '', trend(x => x.pm25, 'var(--t-haze)'), 'wide', 'clock');
-    }
-    if (c.type === 'flood') {
-      const cls = m.water > 25 ? 'bad' : m.water > 10 ? 'warn' : 'ok';
-      return card('ระดับน้ำบนผิวถนน', `${m.water}<small>ซม.</small>`, `<div class="meter" style="--c:var(--${cls})"><i style="width:${TT.clamp(m.water / 60 * 100, 2, 100)}%"></i></div>`) +
-        card('โอกาสฝนตก 1 ชม.', `${Math.round(m.rain * 100)}<small>%</small>`, '<span class="muted" style="font-size:.75rem">ร่วมกับเรดาร์ฝน</span>', '', 'clock') +
-        card('ระดับน้ำ 24 ชม.', '', trend(x => x.water, 'var(--t-flood)'), 'wide', 'clock');
-    }
-    if (c.type === 'tourism') {
-      return card('ความหนาแน่นผู้คน', `${Math.round(m.crowd * 100)}<small>%</small>`, `<div class="meter" style="--c:var(--t-tourism)"><i style="width:${m.crowd * 100}%"></i></div>`) +
-        card('ตรวจพบในภาพ', `${TT.fmt(f.person ?? Math.round(m.crowd * 30))}<small>คน</small>`, f.boat ? `<span class="muted" style="font-size:.75rem">เรือ ${f.boat} ลำ</span>` : '', '', 'eye') +
-        card('ความหนาแน่นตลอดวัน', '', trend(x => x.crowd, 'var(--t-tourism)'), 'wide', 'clock');
-    }
-    const [lab, cls] = TT.congestionLabel(m.congestion);
-    const det = ['car', 'moto', 'bus', 'person'].map(k => `${{ car: 'รถยนต์', moto: 'จยย.', bus: 'รถโดยสาร', person: 'คน' }[k]} ${f[k] ?? 0}`).join(' · ');
-    return card('สภาพจราจร', `${Math.round(m.congestion * 100)}<small>% ${lab}</small>`, `<div class="meter" style="--c:var(--${cls})"><i style="width:${m.congestion * 100}%"></i></div>`) +
-      card('ยานพาหนะต่อชั่วโมง', `${TT.fmt(m.vehicles)}<small>คัน</small>`, '<span class="muted" style="font-size:.75rem">นับโดย AI จากภาพ</span>', '', 'camera') +
-      card('ตรวจพบในภาพตอนนี้', `<span style="font-size:.95rem">${det}</span>`, '', 'wide', 'eye') +
-      card('แนวโน้มความหนาแน่น 24 ชม.', '', trend(x => x.congestion, 'var(--t-traffic)'), 'wide', 'clock');
+  // แถบสถานะออนไลน์/ออฟไลน์ย้อนหลัง 48 ช่วง (ครึ่งชั่วโมง) จากการตรวจสัญญาณ ไม่มีการวิเคราะห์ภาพ
+  U.uptime = function (c) {
+    const r = TT.rng(Math.floor(c.seed * 1e9)), slots = [];
+    for (let i = 0; i < 48; i++) slots.push(r() < 0.025 ? 'offline' : r() < 0.01 ? 'maintenance' : 'online');
+    if (c.status === 'offline') for (let i = Math.max(0, 48 - c.offlineHours * 2); i < 48; i++) slots[i] = 'offline';
+    if (c.status === 'maintenance') for (let i = 44; i < 48; i++) slots[i] = 'maintenance';
+    const pct = (slots.filter(x => x === 'online').length / 48) * 100;
+    const tip = { online: 'ออนไลน์', offline: 'ออฟไลน์', maintenance: 'ซ่อมบำรุง' };
+    return `<div class="uptime" role="img" aria-label="ออนไลน์ ${TT.fmt1(pct)}% ใน 24 ชั่วโมงที่ผ่านมา">${slots.map((x, i) => `<i class="${x}" title="${TT.hhmm(((TT.hourNow() - 24 + i / 2) + 24) % 24)} น. · ${tip[x]}"></i>`).join('')}</div>
+      <div class="legend-scale"><span>24 ชม.ก่อน</span><span>ออนไลน์ ${TT.fmt1(pct)}%</span><span>ตอนนี้</span></div>`;
   };
 
   // ---------- สรุปจังหวัด ----------
@@ -165,7 +142,7 @@
       <div class="detail-body">
         <div class="stats"><div class="stat"><b>${TT.fmt(s.count)}</b><span>กล้องทั้งหมด</span></div><div class="stat"><b>${TT.fmt1(s.onlinePct)}<small>%</small></b><span>ออนไลน์</span></div>
           <div class="stat"><b>${TT.fmt1(s.density)}</b><span>กล้องต่อ 100 ตร.กม.</span></div><div class="stat"><b>${reqs}</b><span>คำขอรอโหวต</span></div></div>
-        <div class="pal-ai"><div class="h">${I('sparkle')}สรุปโดย AI</div><p>${gap ? `ความหนาแน่นกล้องของ${p.th}ต่ำกว่าค่ากลางประเทศ จุดที่ประชาชนขอเพิ่มมากที่สุดคือ${reqs ? 'ทางแยกและพื้นที่ชุมชน' : 'ถนนสายหลักระหว่างอำเภอ'} ควรจัดลำดับติดตั้งตามคะแนนโหวต` : `${p.th}มีกล้องครอบคลุมดีกว่าค่ากลางประเทศ กล้องส่วนใหญ่เป็นประเภท${rows[0] ? rows[0][0].th : ''} ควรเน้นดูแลกล้องที่ออฟไลน์ ${TT.fmt(s.count - s.online)} ตัวให้กลับมาใช้งาน`}</p></div>
+        <div class="dup ${gap ? 'warn' : 'ok'}"><div class="h">${I(gap ? 'alert' : 'check')}${gap ? 'ความหนาแน่นกล้องต่ำกว่าค่ากลางประเทศ' : 'ความหนาแน่นกล้องสูงกว่าค่ากลางประเทศ'}</div><span class="muted">ค่ากลางประเทศ ${TT.fmt1(S.national.medianDensity)} กล้องต่อ 100 ตร.กม. · ออฟไลน์อยู่ ${TT.fmt(s.count - s.online)} ตัว</span></div>
         <div class="section"><span class="eyebrow">สัดส่วนตามประเภท</span>
           ${rows.map(([t, n]) => `<div style="display:grid;grid-template-columns:110px 1fr 44px;gap:10px;align-items:center;font-size:var(--fs-sm)"><span>${t.th}</span><div class="meter" style="--c:${t.css};height:7px"><i style="width:${(n / max) * 100}%"></i></div><span class="mono" style="text-align:right;font-size:.75rem">${TT.fmt(n)}</span></div>`).join('')}
         </div>
@@ -233,7 +210,7 @@
           <textarea id="pl-reason" maxlength="500" placeholder="เล่าเหตุการณ์หรือปัญหาที่พบ เพื่อช่วยหน่วยงานตัดสินใจ">${esc(P.reason)}</textarea><span class="err" id="pl-reason-err" hidden>เลือกเหตุผลหรือเขียนอธิบายอย่างน้อย 10 ตัวอักษร</span></div>
         ${P.kind === 'share' ? `<div class="field"><label for="pl-stream">ลิงก์สตรีม <span class="muted">RTSP / HLS ไม่บังคับ</span></label><input type="url" id="pl-stream" placeholder="rtsp://" value="${esc(P.stream)}"></div>` : ''}
         <div class="field"><span class="lab">รูปถ่ายหน้างาน <span class="muted">ไม่บังคับ</span></span>
-          <label class="upload" id="pl-upload">${P.photo ? `<img src="${P.photo}" alt="รูปที่แนบ">` : `${I('image')}<span>แตะเพื่อเลือกรูป หรือลากไฟล์มาวาง<br><small class="muted">ระบบจะเบลอใบหน้าก่อนเผยแพร่</small></span>`}<input type="file" id="pl-file" accept="image/*"></label></div>
+          <label class="upload" id="pl-upload">${P.photo ? `<img src="${P.photo}" alt="รูปที่แนบ">` : `${I('image')}<span>แตะเพื่อเลือกรูป หรือลากไฟล์มาวาง<br><small class="muted">เจ้าหน้าที่ตรวจรูปก่อนเผยแพร่</small></span>`}<input type="file" id="pl-file" accept="image/*"></label></div>
         <div class="field"><label for="pl-contact">ช่องทางติดต่อกลับ <span class="muted">ไม่บังคับ ไม่เปิดเผยต่อสาธารณะ</span></label><input type="tel" id="pl-contact" value="${esc(P.contact)}" placeholder="เบอร์โทรหรือ LINE ID"></div>
         <label class="consent"><input type="checkbox" id="pl-consent" ${P.consent ? 'checked' : ''}>ยินยอมให้เผยแพร่ตำแหน่งและเหตุผลของคำขอนี้ต่อสาธารณะ โดยไม่แสดงข้อมูลติดต่อ ตามนโยบายความเป็นส่วนตัว</label>
         <span class="err" id="pl-consent-err" hidden>ต้องยินยอมก่อนส่งคำขอ</span></form>`;
@@ -272,34 +249,21 @@
     return html;
   };
 
-  // ---------- ค้นหา / AI ----------
+  // ---------- ค้นหา ----------
   U.paletteEmpty = function (S) {
-    const sug = ['กล้องจราจรที่รถติดตอนนี้ในกรุงเทพ', 'จุดเฝ้าระวังน้ำท่วมที่ระดับน้ำสูง', 'ค่าฝุ่น PM2.5 สูงในภาคเหนือ', 'กล้องชายหาดภูเก็ตที่คนเยอะ', 'กล้องที่ออฟไลน์ในเชียงใหม่'];
+    const marks = S.cams.filter(c => c.landmark).slice(0, 8);
     const pops = ['bkk', 'cmi', 'pkt', 'kkn', 'cbi', 'ska'].map(id => TT_GEO.provinces.find(p => p.id === id));
     const recent = S.recent.slice(0, 4);
-    return `<div class="pal-group eyebrow">ลองถาม AI ด้วยภาษาไทย</div><div class="suggest">${sug.map(s => `<button type="button" class="chip" data-act="pal-fill" data-v="${esc(s)}">${I('sparkle')}${s}</button>`).join('')}</div>
+    return `<div class="pal-group eyebrow">จุดสำคัญ</div><div class="suggest">${marks.map(c => `<button type="button" class="chip" data-act="cam" data-v="${c.id}" style="${typeVar(c.type)}"><i class="dot"></i>${esc(c.name)}</button>`).join('')}</div>
       ${recent.length ? `<div class="pal-group eyebrow">ค้นหาล่าสุด</div><div class="suggest">${recent.map(s => `<button type="button" class="chip" data-act="pal-fill" data-v="${esc(s)}">${I('clock')}${esc(s)}</button>`).join('')}</div>` : ''}
       <div class="pal-group eyebrow">จังหวัดยอดนิยม</div><div class="suggest">${pops.map(p => `<button type="button" class="chip" data-act="pal-prov" data-v="${p.id}">${p.th}</button>`).join('')}</div>`;
   };
   U.paletteResults = function (S, q, res) {
     let html = '';
-    const direct = res.provs.length + res.cities.length + res.cams.length > 0;
-    const aiBlock = () => {
-      if (!res.ai) return '';
-      let html = '';
-      const a = res.ai;
-      html += `<div class="pal-ai"><div class="h">${I('sparkle')}คำตอบจาก AI · ข้อมูล ${TT.hhmm(S.hourView())} น.</div><p>${a.summary}</p>
-        ${a.items.length ? `<div style="display:grid;gap:2px">${a.items.slice(0, 4).map(it => `<button type="button" class="pal-item" data-act="cam" data-v="${it.cam.id}" style="${typeVar(it.cam.type)}"><span class="ic">${I('camera')}</span><span><b>${esc(it.cam.name)}</b><small>จ.${esc(it.cam.provTh)} · ${it.note}</small></span><span class="go">ดู</span></button>`).join('')}</div>` : ''}
-        ${a.items.length ? `<div class="row"><button class="btn btn-primary" data-act="ai-apply" style="min-height:34px">${I('map')}แสดงทั้งหมดบนแผนที่ (${TT.fmt(a.items.length)})</button></div>` : ''}</div>`;
-      return html;
-    };
-    // ถ้าพิมพ์ตรงกับชื่อสถานที่/กล้อง ให้ผลตรงขึ้นก่อน คำตอบ AI ตามหลัง
-    if (!direct) html += aiBlock();
     const group = (title, items) => (items.length ? `<div class="pal-group eyebrow">${title}</div>${items.join('')}` : '');
     html += group('จังหวัด', res.provs.map(p => `<button type="button" class="pal-item" role="option" data-act="pal-prov" data-v="${p.id}"><span class="ic">${I('map')}</span><span><b>${p.th}</b><small>ภาค${p.region} · ${TT.fmt(S.provStats[p.id].count)} กล้อง</small></span><span class="go">ไป ↵</span></button>`));
     html += group('เมืองและพื้นที่', res.cities.map(c => `<button type="button" class="pal-item" role="option" data-act="pal-city" data-v="${c.id}"><span class="ic">${I('pin')}</span><span><b>${c.th}</b><small>${TT.fmt(c.n)}+ กล้องในตัวเมือง</small></span><span class="go">ไป ↵</span></button>`));
     html += group('กล้อง', res.cams.map(c => `<button type="button" class="pal-item" role="option" data-act="cam" data-v="${c.id}" style="${typeVar(c.type)}"><span class="ic">${I('camera')}</span><span><b>${esc(c.name)}</b><small>${TT.TYPE[c.type].th} · จ.${esc(c.provTh)} · <span class="mono">${c.id}</span></small></span><span class="go">ดู ↵</span></button>`));
-    if (direct) html += aiBlock();
     if (!html) html = `<div class="empty">${I('search')}<span>ไม่พบ “${esc(q)}”<br>ลองพิมพ์ชื่อจังหวัด ชื่อแยก หรือรหัสกล้อง เช่น BKK-TRF-0001</span></div>`;
     return html;
   };

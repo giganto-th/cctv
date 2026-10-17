@@ -236,10 +236,10 @@
       if (r !== hexRadius) hexRadius = r;
       L.push(new D.HexagonLayer({
         id: 'hex', data: S.filtered, getPosition: d => d.pos, radius: hexRadius, coverage: 0.84, extruded: true,
-        elevationRange: [0, 150], elevationScale: m * f * (0.35 + TT.activity(S.hourView()) * 0.9), upperPercentile: 99,
+        elevationRange: [0, 150], elevationScale: m * f, upperPercentile: 99,
         getElevationValue: pts => Math.sqrt(pts.length), getColorValue: pts => Math.sqrt(pts.length),
         colorRange: C.ramp.map(c => [...c]), material: MATERIAL, pickable: true, autoHighlight: true, highlightColor: [255, 255, 255, 90],
-        transitions: { elevationScale: 600 }, updateTriggers: { getPosition: S.filterVersion },
+        updateTriggers: { getPosition: S.filterVersion },
       }));
     }
 

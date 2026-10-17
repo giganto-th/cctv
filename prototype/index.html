@@ -61,7 +61,7 @@
     </a>
     <button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog">
       <svg><use href="#i-search"/></svg>
-      <span class="search-ph desk-only">ค้นหาจังหวัด สถานที่ รหัสกล้อง หรือถาม AI</span><span class="search-ph mob-only">ค้นหา หรือถาม AI</span>
+      <span class="search-ph desk-only">ค้นหาจังหวัด เมือง ชื่อจุด หรือรหัสกล้อง</span><span class="search-ph mob-only">ค้นหาจังหวัด จุด หรือรหัสกล้อง</span>
       <kbd>⌘K</kbd>
     </button>
     <div class="top-actions">
@@ -73,13 +73,12 @@
   </header>
 
   <div id="stat-strip" class="mob-only" aria-live="polite"></div>
-  <div id="ai-chip" hidden></div>
 
   <aside id="panel-layers" class="panel sheet" aria-label="ชั้นข้อมูลและตัวกรอง"></aside>
   <aside id="panel-detail" class="panel sheet side" aria-label="รายละเอียด" hidden></aside>
   <aside id="panel-requests" class="panel sheet side" aria-label="คำขอปักหมุดกล้อง" hidden></aside>
 
-  <section id="alerts" class="desk-only" aria-label="การแจ้งเตือนจาก AI"></section>
+  <section id="alerts" class="desk-only" aria-label="อัปเดตล่าสุดของเครือข่ายกล้อง"></section>
 
   <div id="timebar" role="group" aria-label="ย้อนเวลาดูภาพรวม 24 ชั่วโมง"></div>
 
@@ -121,7 +120,7 @@
     <div class="palette-box">
       <div class="palette-input">
         <svg><use href="#i-search"/></svg>
-        <input id="palette-q" type="search" autocomplete="off" placeholder="ค้นหาจังหวัด สถานที่ รหัสกล้อง หรือพิมพ์คำถาม" aria-controls="palette-results">
+        <input id="palette-q" type="search" autocomplete="off" placeholder="ค้นหาจังหวัด เมือง ชื่อจุด หรือรหัสกล้อง" aria-controls="palette-results">
         <button type="button" class="icon-btn sm" data-close aria-label="ปิด"><svg><use href="#i-x"/></svg></button>
       </div>
       <div id="palette-results" role="listbox"></div>

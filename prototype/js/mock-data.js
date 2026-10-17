@@ -255,7 +255,7 @@
     return cams;
   };
 
-  // ค่าวิเคราะห์ AI จำลอง เปลี่ยนตามชั่วโมง
+  // ค่าจำลองสำหรับขับฉากในภาพกล้อง (จำนวนรถ ระดับน้ำ หมอกควัน) เปลี่ยนตามชั่วโมง
   TT.metrics = function (c, h) {
     const act = TT.activity(h), wob = Math.sin(h * 1.7 + c.seed * 20) * 0.08;
     const m = {};
@@ -268,8 +268,6 @@
     m.crowd = TT.clamp((0.2 + c.seed2 * 0.7) * (0.35 + TT.daylight(h)), 0, 1);
     return m;
   };
-  TT.congestionLabel = v => (v > 0.7 ? ['ติดขัด', 'bad'] : v > 0.45 ? ['หนาแน่น', 'warn'] : ['คล่องตัว', 'ok']);
-  TT.pmLabel = v => (v <= 15 ? ['ดีมาก', '#3B8BEB'] : v <= 25 ? ['ดี', '#3DB86B'] : v <= 37.5 ? ['ปานกลาง', '#E6B800'] : v <= 75 ? ['เริ่มมีผลกระทบ', '#F08A24'] : ['มีผลกระทบต่อสุขภาพ', '#E5484D']);
 
   // ---------- คำขอจากประชาชน ----------
   const REASONS = {
@@ -361,21 +359,13 @@
     return trips;
   };
 
-  // ---------- การแจ้งเตือนจาก AI ----------
-  TT.makeAlert = function (cams, h, r) {
-    const kinds = [
-      ['traffic', c => TT.metrics(c, h).congestion > 0.66, c => `รถติดขัดสะสม ${Math.round(TT.metrics(c, h).congestion * 100)}%`, 'alert'],
-      ['flood', c => TT.metrics(c, h).water > 18, c => `ระดับน้ำ ${TT.metrics(c, h).water} ซม. เพิ่มขึ้น`, 'alert'],
-      ['haze', c => TT.metrics(c, h).pm25 > 60, c => `PM2.5 ${TT.metrics(c, h).pm25} µg/m³ เกินมาตรฐาน`, 'sparkle'],
-      ['tourism', c => TT.metrics(c, h).crowd > 0.6, () => 'ผู้คนหนาแน่นกว่าปกติ', 'sparkle'],
-      ['safety', c => c.status === 'offline', () => 'สัญญาณกล้องขาดหาย แจ้งผู้ดูแลแล้ว', 'alert'],
-    ];
-    for (let tries = 0; tries < 12; tries++) {
-      const [type, test, msg, icon] = r.pick(kinds);
-      const pool = cams.filter(c => c.type === type || (type === 'safety' && c.status === 'offline'));
-      const cand = pool.filter(test);
-      if (cand.length) { const c = r.pick(cand); return { cam: c, msg: msg(c), icon, type: c.type }; }
-    }
-    return null;
+  // ---------- อัปเดตของเครือข่ายกล้อง (สถานะ/ติดตั้งใหม่/คำขอ) ----------
+  TT.makeUpdate = function (cams, requests, r) {
+    const k = r();
+    if (k < 0.35) { const c = r.pick(cams.filter(x => x.status === 'offline')); return { cam: c, msg: 'สัญญาณขาดหาย แจ้งหน่วยงานเจ้าของแล้ว', icon: 'alert', type: c.type }; }
+    if (k < 0.6) { const c = r.pick(cams.filter(x => x.status === 'online')); return { cam: c, msg: 'กลับมาออนไลน์แล้ว', icon: 'check', type: c.type }; }
+    if (k < 0.8) { const c = r.pick(cams.filter(x => x.installed === 2569)); return { cam: c, msg: 'เปิดให้ดูภาพบนแผนที่แล้ว (ติดตั้งใหม่)', icon: 'camera', type: c.type }; }
+    const c = r.pick(cams.filter(x => x.status === 'maintenance'));
+    return { cam: c, msg: 'อยู่ระหว่างซ่อมบำรุงตามแผน', icon: 'clock', type: c.type };
   };
 })(window.TT);
