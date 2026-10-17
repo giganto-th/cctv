@@ -15,8 +15,7 @@
 
 ## เปิดดูต้นแบบ
 
-**ออนไลน์ (GitHub Pages):** https://giganto-th.github.io/cctv/ — deploy อัตโนมัติด้วย `.github/workflows/pages.yml` ทุกครั้งที่ push ไฟล์ใน `prototype/`
-(ตั้งค่าครั้งแรก: Settings → Pages → Build and deployment → Source เลือก **GitHub Actions**)
+**ออนไลน์ (GitHub Pages):** https://giganto-th.github.io/cctv/ (deploy จาก branch หลักอัตโนมัติทุกครั้งที่ push; หน้าแรกพาไปที่ `prototype/`)
 
 **บนเครื่อง:**
 
