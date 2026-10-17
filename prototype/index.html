@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ตาทิพย์ CCTV Thailand</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="ต้นแบบ UX/UI แพลตฟอร์มรวมกล้อง CCTV ทั่วประเทศไทยบนแผนที่ 3 มิติ (ข้อมูลจำลอง)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600&family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3.2"/><path d="M12 2v2M12 20v2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 13h4l1.5 3h5L16 13h4"/><path d="M5.5 5h13L21 13v6H3v-6l2.5-8Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><path d="m12 3 4 9h-8l4-9Z" class="fill"/><path d="m12 21-4-9h8l-4 9Z"/></symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l12-7L7 5Z" class="fill"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" class="fill"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3 7h11l3 3v4l-3 3H3z"/><path d="m17 11 4-2v6l-4-2"/><path d="M6 17v3h5"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4h11l-1.5 4L16 12H5"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></symbol>
+    <symbol id="i-nav" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8-8-2Z"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17v.5"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V6M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></symbol>
+    <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6Z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+  </defs>
+</svg>
+
+<div id="app" data-mode="points">
+  <div id="map" aria-label="แผนที่ 3 มิติของประเทศไทยแสดงตำแหน่งกล้อง CCTV" role="application"></div>
+  <div id="vignette" aria-hidden="true"></div>
+  <div id="labels" aria-hidden="true"></div>
+
+  <header id="topbar">
+    <a class="brand" href="#" aria-label="ตาทิพย์ หน้าแรก" id="brand">
+      <span class="brand-mark"><svg><use href="#i-eye"/></svg></span>
+      <span class="brand-text"><b>ตาทิพย์</b><small>CCTV THAILAND</small></span>
+    </a>
+    <button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog">
+      <svg><use href="#i-search"/></svg>
+      <span class="search-ph desk-only">ค้นหาจังหวัด สถานที่ รหัสกล้อง หรือถาม AI</span><span class="search-ph mob-only">ค้นหา หรือถาม AI</span>
+      <kbd>⌘K</kbd>
+    </button>
+    <div class="top-actions">
+      <button class="icon-btn desk-only" id="btn-layers" type="button" aria-label="แสดงหรือซ่อนชั้นข้อมูล" aria-pressed="true"><svg><use href="#i-layers"/></svg></button>
+      <button class="icon-btn desk-only" id="btn-requests" type="button" aria-label="คำขอปักหมุด"><svg><use href="#i-inbox"/></svg><span class="badge" id="req-badge">0</span></button>
+      <button class="icon-btn" id="btn-theme" type="button" aria-label="สลับธีมกลางวันหรือกลางคืน"><svg class="ico-sun"><use href="#i-sun"/></svg><svg class="ico-moon"><use href="#i-moon"/></svg></button>
+      <button class="btn btn-primary desk-only" id="btn-request" type="button"><svg><use href="#i-plus"/></svg>ขอปักหมุดกล้อง</button>
+    </div>
+  </header>
+
+  <div id="stat-strip" class="mob-only" aria-live="polite"></div>
+  <div id="ai-chip" hidden></div>
+
+  <aside id="panel-layers" class="panel sheet" aria-label="ชั้นข้อมูลและตัวกรอง"></aside>
+  <aside id="panel-detail" class="panel sheet side" aria-label="รายละเอียด" hidden></aside>
+  <aside id="panel-requests" class="panel sheet side" aria-label="คำขอปักหมุดกล้อง" hidden></aside>
+
+  <section id="alerts" class="desk-only" aria-label="การแจ้งเตือนจาก AI"></section>
+
+  <div id="timebar" role="group" aria-label="ย้อนเวลาดูภาพรวม 24 ชั่วโมง"></div>
+
+  <div id="map-ctrl" role="toolbar" aria-label="ควบคุมแผนที่">
+    <div class="ctrl-group">
+      <button type="button" id="ctrl-zoom-in" aria-label="ซูมเข้า"><svg><use href="#i-plus"/></svg></button>
+      <button type="button" id="ctrl-zoom-out" aria-label="ซูมออก"><svg><use href="#i-minus"/></svg></button>
+    </div>
+    <div class="ctrl-group">
+      <button type="button" id="ctrl-compass" aria-label="หันทิศเหนือขึ้น"><svg id="compass-needle"><use href="#i-compass"/></svg></button>
+      <button type="button" id="ctrl-pitch" aria-label="สลับมุมมอง 2 มิติ หรือ 3 มิติ"><span id="pitch-label">3D</span></button>
+      <button type="button" id="ctrl-locate" aria-label="ไปยังตำแหน่งของฉัน"><svg><use href="#i-locate"/></svg></button>
+      <button type="button" id="ctrl-tour" aria-label="ทัวร์ 3 มิติอัตโนมัติ"><svg><use href="#i-route"/></svg></button>
+    </div>
+  </div>
+
+  <nav id="bottom-nav" class="mob-only" aria-label="เมนูหลัก">
+    <button type="button" data-nav="map" class="active"><svg><use href="#i-map"/></svg><span>สำรวจ</span></button>
+    <button type="button" data-nav="layers"><svg><use href="#i-layers"/></svg><span>ชั้นข้อมูล</span></button>
+    <button type="button" data-nav="request" class="nav-fab" aria-label="ขอปักหมุดกล้องใหม่"><svg><use href="#i-plus"/></svg><span>ขอปักหมุด</span></button>
+    <button type="button" data-nav="requests"><svg><use href="#i-inbox"/></svg><span>คำขอ</span><i class="dot-badge" id="req-dot" hidden></i></button>
+    <button type="button" data-nav="search"><svg><use href="#i-search"/></svg><span>ค้นหา</span></button>
+  </nav>
+
+  <div id="placer" hidden>
+    <div class="placer-target" aria-hidden="true">
+      <div class="placer-pulse"></div>
+      <svg class="placer-pin"><use href="#i-pin"/></svg>
+      <div class="placer-shadow"></div>
+    </div>
+    <div class="placer-hint" id="placer-hint"></div>
+    <section class="panel placer-panel" id="placer-panel" aria-label="ขอปักหมุดกล้องใหม่"></section>
+  </div>
+
+  <div id="tour-caption" hidden></div>
+
+  <div id="palette" hidden role="dialog" aria-modal="true" aria-label="ค้นหา">
+    <div class="palette-scrim" data-close></div>
+    <div class="palette-box">
+      <div class="palette-input">
+        <svg><use href="#i-search"/></svg>
+        <input id="palette-q" type="search" autocomplete="off" placeholder="ค้นหาจังหวัด สถานที่ รหัสกล้อง หรือพิมพ์คำถาม" aria-controls="palette-results">
+        <button type="button" class="icon-btn sm" data-close aria-label="ปิด"><svg><use href="#i-x"/></svg></button>
+      </div>
+      <div id="palette-results" role="listbox"></div>
+      <div class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> เลือก</span><span><kbd>Enter</kbd> ไป</span><span><kbd>Esc</kbd> ปิด</span></div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="demo-badge">ข้อมูลจำลอง · ต้นแบบ UX/UI เฟส 1</div>
+
+  <div id="boot" aria-hidden="true">
+    <div class="boot-mark"><svg><use href="#i-eye"/></svg></div>
+    <div class="boot-title">ตาทิพย์</div>
+    <div class="boot-line" id="boot-line">กำลังเชื่อมต่อเครือข่ายกล้อง 77 จังหวัด</div>
+    <div class="boot-bar"><i></i></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/deck.gl@9.1.14/dist.min.js"></script>
+<script src="js/geo-data.js"></script>
+<script src="js/util.js"></script>
+<script src="js/mock-data.js"></script>
+<script src="js/feed.js"></script>
+<script src="js/map.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
