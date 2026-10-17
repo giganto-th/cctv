@@ -21,6 +21,7 @@
     selected: null, selectedProv: null, ptzAuto: true, reportOpen: false, placing: null,
     panelOpen: !TT.isMobile(), sideOpen: false, introDone: false, reqTab: 'near', activeReq: null,
     highlight: null, highlightList: [], highlightVersion: 0, filterVersion: 0, statsVersion: 0, reqVersion: 0,
+    view: TT.store.get('view', '3d') === 'street' ? 'street' : '3d',
     favs: new Set(TT.store.get('favs', [])), votes: new Set(TT.store.get('votes', [])), recent: TT.store.get('recent', []),
   });
 
@@ -114,14 +115,7 @@
     try { history.replaceState(null, '', '#cam-' + c.id); } catch (e) { /* บาง sandbox ห้ามแก้ URL */ }
     M.render();
   }
-  function centerOn(pos, target, offset = [0, 0], duration = 1700) {
-    const w = innerWidth, h = innerHeight;
-    const vs = { ...S.vs, ...target, longitude: pos[0], latitude: pos[1] };
-    const vp = new deck.WebMercatorViewport({ ...vs, width: w, height: h });
-    // ย้ายศูนย์กลางไปยังจุด Q เพื่อให้เป้าหมายไปอยู่ที่ (w/2 - dx, h/2 - dy) ไม่ถูกแผงบัง
-    const q = vp.unproject([w / 2 + offset[0], h / 2 + offset[1]]);
-    M.flyTo({ ...target, longitude: q[0], latitude: q[1] }, duration);
-  }
+  const centerOn = (pos, target, offset, duration) => M.centerOn(pos, target, offset, duration);
   function renderDetail() {
     const c = S.selected, pd = $('#panel-detail');
     stopFeed();
@@ -148,10 +142,25 @@
 
   // ---------- โหมด / ตัวกรอง ----------
   function setMode(m) {
+    if (S.view === 'street' && (m === 'hex' || m === 'province')) setView('3d');
     S.mode = m; app.dataset.mode = m;
     if (m === 'province' && S.vs.zoom > 8) M.flyTo(overviewView(), 1600);
     if (m === 'requests' && S.vs.zoom > 11) M.flyTo({ zoom: 10.5 }, 900);
     renderLayersPanel(); M.render(); labelsDirty = true;
+  }
+
+  // ---------- สลับแผนที่ 3 มิติ / แผนที่ถนน ----------
+  function setView(v, quiet) {
+    if (v === S.view && !quiet) return;
+    S.view = v; TT.store.set('view', v);
+    app.classList.toggle('street', v === 'street');
+    if (v === 'street') {
+      if (S.mode === 'hex' || S.mode === 'province') { S.mode = 'points'; app.dataset.mode = 'points'; }
+      TT.street.show();
+    } else { TT.street.hide(); M.syncView(); }
+    document.querySelectorAll('[data-act="view"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
+    renderLayersPanel(); labelsDirty = true;
+    if (!quiet) TT.toast(v === 'street' ? 'แผนที่ถนน: แผนที่ฐาน OpenStreetMap' : 'แผนที่ 3 มิติ');
   }
 
   // ---------- palette ----------
@@ -222,6 +231,7 @@
       const d = TT.distance(o.pos, c);
       return { cam: o, d, covers: d <= o.range && TT.angleDiff(TT.bearing(o.pos, c), o.heading) <= o.fov / 2 };
     }).filter(n => n.d <= TT.DUP_RADIUS).sort((a, b) => b.covers - a.covers || a.d - b.d);
+    if (M.isStreet()) setTimeout(() => M.render(), 0);
     P.nearReqs = S.requests.filter(r => !r.mine && r.status === 'voting').map(r => ({ ...r, d: TT.distance(r.pos, c) })).filter(r => r.d < 250).sort((a, b) => a.d - b.d);
     if (P.step === 1) {
       const el = $('#pl-dup'); if (el) el.innerHTML = U.dup(S);
@@ -317,7 +327,7 @@
   ];
   let tourIdx = -1, tourTimer = null;
   function startTour() {
-    if (S.placing) exitPlacing(); closeDetail();
+    if (S.placing) exitPlacing(); closeDetail(); setView('3d');
     tourIdx = -1; $('#ctrl-tour').classList.add('on'); nextTour();
   }
   function nextTour() {
@@ -394,6 +404,7 @@
   function updateLabels() {
     const v = S.vs, key = [v.longitude.toFixed(5), v.latitude.toFixed(5), v.zoom.toFixed(3), v.pitch.toFixed(1), v.bearing.toFixed(1), innerWidth, innerHeight, S.mode, S.selected && S.selected.id, S.statsVersion, S.dark].join('|');
     if (key === lastKey && !labelsDirty) return; lastKey = key; labelsDirty = false;
+    if (S.view === 'street') { for (const el of labelEls.values()) el.style.display = 'none'; return; }
     const vp = M.viewport(), z = v.zoom, W = innerWidth, H = innerHeight;
     const cand = [];
     if (z < 7.6) {
@@ -462,6 +473,7 @@
     const a = t.dataset.act, v = t.dataset.v;
     switch (a) {
       case 'mode': setMode(v); break;
+      case 'view': setView(v); break;
       case 'type': S.types.has(v) ? S.types.delete(v) : S.types.add(v); applyFilters(); renderLayersPanel(); M.refreshCones(); M.render(); break;
       case 'types-all': if (S.types.size === TT.TYPES.length) S.types.clear(); else TT.TYPES.forEach(x => S.types.add(x.key)); applyFilters(); renderLayersPanel(); M.refreshCones(); M.render(); break;
       case 'status': S.statuses.has(v) ? S.statuses.delete(v) : S.statuses.add(v); applyFilters(); renderLayersPanel(); M.refreshCones(); M.render(); break;
@@ -543,7 +555,7 @@
   $('#btn-theme').addEventListener('click', () => { const next = S.dark ? 'light' : 'dark'; root.setAttribute('data-theme', next); TT.store.set('theme', next); themeChanged(); });
   sysDark.addEventListener('change', themeChanged);
   new MutationObserver(() => { if (resolveDark() !== S.dark) themeChanged(); }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-  function themeChanged() { S.dark = resolveDark(); root.setAttribute('data-resolved-theme', S.dark ? 'dark' : 'light'); M.setTheme(); renderLayersPanel(); drawTimeCanvas(); labelsDirty = true; }
+  function themeChanged() { S.dark = resolveDark(); root.setAttribute('data-resolved-theme', S.dark ? 'dark' : 'light'); M.setTheme(); TT.street.setTheme(); renderLayersPanel(); drawTimeCanvas(); labelsDirty = true; }
 
   $('#ctrl-zoom-in').addEventListener('click', () => M.flyTo({ zoom: Math.min(S.vs.zoom + 1, 17.5) }, 350));
   $('#ctrl-zoom-out').addEventListener('click', () => M.flyTo({ zoom: Math.max(S.vs.zoom - 1, 4) }, 350));
@@ -594,6 +606,7 @@
   // ---------- เริ่มต้น ----------
   root.setAttribute('data-resolved-theme', S.dark ? 'dark' : 'light');
   M.init(S, H);
+  TT.street.init(S, H);
   renderLayersPanel();
   renderTimebar();
   setInterval(() => { if (S.hour == null) { const l = $('#time-label'); if (l) l.innerHTML = U.timeLabel(S); } }, 15000);
@@ -606,7 +619,8 @@
   setTimeout(() => {
     clearInterval(bootTick); boot.classList.add('done');
     M.startIntro();
-    M.flyTo(overviewView(), 2600);
+    if (S.view === 'street') { Object.assign(S.vs, overviewView()); setView('street', true); }
+    else M.flyTo(overviewView(), 2600);
     const m = /^#cam-([A-Z0-9-]+)$/.exec(location.hash);
     if (m && S.camById.has(m[1])) setTimeout(() => selectCamera(S.camById.get(m[1])), 2700);
   }, TT.reducedMotion() ? 50 : 950);

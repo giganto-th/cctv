@@ -40,6 +40,7 @@ npm run build:single # → dist/tathip.html
 - ลาก **แถบเวลา** หรือกด ▶ เพื่อย้อนดู 24 ชั่วโมง (แสงอาทิตย์ รถ และภาพในกล้องเปลี่ยนตาม)
 - กด **＋ ขอปักหมุดกล้อง** → เลื่อนหมุด ระบบตรวจกล้องซ้ำในรัศมี 150 ม. → หมุนวงทิศทาง → กรอกเหตุผล → ได้รหัสติดตาม
 - กดปุ่ม **ทัวร์** (มุมขวาล่าง) เพื่อบินชมเมืองหลักแบบอัตโนมัติ
+- สลับ **แผนที่ 3 มิติ ↔ แผนที่ถนน** (Leaflet + OpenStreetMap) ที่ปุ่ม 3D/ถนน มุมขวาล่าง หรือในแผงชั้นข้อมูล
 - สลับธีมกลางวัน/กลางคืนที่ปุ่มพระอาทิตย์/พระจันทร์
 
 ## เอกสาร
@@ -57,6 +58,8 @@ prototype/
   js/mock-data.js     ข้อมูลจำลอง: กล้อง คำขอ ทางหลวง เมือง 3D กระแสจราจร อัปเดตสถานะ
   js/feed.js          ภาพสดจำลองบน canvas
   js/map.js           แผนที่ 3 มิติด้วย deck.gl (เลเยอร์ แสง ภาพเคลื่อนไหว)
+  js/street.js        แผนที่ถนน 2 มิติด้วย Leaflet (ใช้สถานะร่วมกับ 3 มิติ)
+  css/leaflet.css     สไตล์ของ Leaflet 1.9.4 (BSD-2-Clause)
   js/ui.js            เทมเพลตแผงต่าง ๆ
   js/app.js           สถานะแอป การค้นหา ขั้นตอนขอปักหมุด คำขอ ทัวร์
 tools/
@@ -71,3 +74,4 @@ docs/                 เอกสารออกแบบและภาพห�
 - ขอบเขตจังหวัด: [@svg-maps/thailand](https://github.com/VictorCazanave/svg-maps) (CC BY 4.0) แปลงเป็นพิกัดโดยประมาณ
 - ประเทศเพื่อนบ้าน: [Natural Earth](https://www.naturalearthdata.com/) ผ่าน [world-atlas](https://github.com/topojson/world-atlas)
 - เรนเดอร์ 3 มิติ: [deck.gl](https://deck.gl) 9.1
+- แผนที่ถนน: [Leaflet](https://leafletjs.com) 1.9.4 + แผนที่ฐาน © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors © [CARTO](https://carto.com/attributions) (ต้องต่ออินเทอร์เน็ตเพื่อโหลดภาพแผนที่)

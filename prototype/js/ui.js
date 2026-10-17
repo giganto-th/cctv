@@ -30,9 +30,16 @@
           <div class="stat"><b>${st.provinces}<small>/77</small></b><span>จังหวัดที่มีกล้อง</span></div>
         </div>
         <div class="section">
+          <span class="eyebrow">แผนที่ฐาน</span>
+          <div class="seg" style="--n:2" role="group" aria-label="แผนที่ฐาน">
+            <button type="button" data-act="view" data-v="3d" aria-pressed="${S.view !== 'street'}">${I('cube')}<span>3 มิติ</span></button>
+            <button type="button" data-act="view" data-v="street" aria-pressed="${S.view === 'street'}">${I('route')}<span>แผนที่ถนน</span></button>
+          </div>
+        </div>
+        <div class="section">
           <div class="section-title"><span class="eyebrow">มุมมองแผนที่</span></div>
           <div class="seg" style="--n:4" role="group" aria-label="มุมมองแผนที่">
-            ${modes.map(([k, ic, th]) => `<button type="button" data-act="mode" data-v="${k}" aria-pressed="${S.mode === k}">${I(ic)}<span>${th}</span></button>`).join('')}
+            ${modes.map(([k, ic, th]) => `<button type="button" data-act="mode" data-v="${k}" aria-pressed="${S.mode === k}" ${S.view === 'street' && (k === 'hex' || k === 'province') ? 'title="สลับเป็นแผนที่ 3 มิติ"' : ''}>${I(ic)}<span>${th}</span></button>`).join('')}
           </div>
           ${legend}
         </div>

@@ -95,6 +95,21 @@ h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; line-height: 1.2; 
 
 #app { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(140% 110% at 50% 30%, var(--bg-2), var(--bg) 70%); }
 #map { position: absolute; inset: 0; }
+#street { position: absolute; inset: 0; z-index: 1; background: var(--bg); }
+#app.street #map, #app.street #labels, #app.street #ctrl-compass, #app.street #ctrl-pitch { display: none; }
+#app.street #vignette { opacity: .45; }
+.leaflet-container { font-family: var(--font-body); background: var(--bg); }
+#street .leaflet-bottom.leaflet-right { right: calc(var(--gutter-r) + 54px); bottom: calc(var(--bottom) - 4px); }
+#street .leaflet-control-attribution { background: var(--glass); color: var(--fg-3); font-size: 10px; border-radius: 6px 0 0 0; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+#street .leaflet-control-attribution a { color: var(--fg-2); }
+.leaflet-tooltip.tt-leaflet { background: var(--glass-strong); color: var(--fg); border: 1px solid var(--line-2); border-radius: 10px; box-shadow: var(--shadow); font: 13px/1.4 var(--font-body); padding: 6px 10px; }
+.leaflet-tooltip.tt-leaflet small { color: var(--fg-2); }
+.leaflet-tooltip-top.tt-leaflet::before { border-top-color: var(--line-2); }
+#street .sel-pulse { animation: blink 1.4s infinite; }
+.view-switch button { display: grid; justify-items: center; align-content: center; gap: 1px; height: 46px; }
+.view-switch button svg { width: 18px; height: 18px; }
+.view-switch small { font-size: 0.625rem; font-weight: 600; font-family: var(--font-display); }
+.view-switch button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
 #map canvas { touch-action: none; }
 #vignette { position: absolute; inset: 0; pointer-events: none; background: var(--vignette); }
 
@@ -551,7 +566,8 @@ h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; line-height: 1.2; 
   #app.side-open #map-ctrl, #app.placing #map-ctrl { right: var(--gutter-r); }
   #app.placing #bottom-nav { display: none !important; }
   #app.placing #map-ctrl { bottom: calc(58% + 12px); }
-  #map-ctrl .ctrl-group:first-child { display: none; }
+  #map-ctrl #zoom-group { display: none; }
+  #street .leaflet-bottom.leaflet-right { right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 64px + 56px); }
   .ctrl-group button { width: 40px; height: 40px; }
 
   #timebar {

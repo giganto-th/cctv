@@ -118,6 +118,7 @@
     coneTimer = setTimeout(() => { coneTimer = null; M.refreshCones(); }, 160);
   }
   M.refreshCones = function () {
+    if (street()) { TT.street.sync(); return; }
     if (S.vs.zoom < 13.2 || !S.toggles.cones) { if (coneData.length) { coneData = []; M.render(); } return; }
     const b = M.bounds();
     const list = [];
@@ -131,15 +132,18 @@
   };
 
   M.viewport = (vs = S.vs) => new D.WebMercatorViewport({ ...vs, width: el.clientWidth || 1, height: el.clientHeight || 1 });
-  M.bounds = () => { const vp = M.viewport(); const pad = 0.15; const [w, s, e, n] = vp.getBounds(); const dx = (e - w) * pad, dy = (n - s) * pad; return [w - dx, s - dy, e + dx, n + dy]; };
+  const street = () => TT.street && TT.street.active;
+  M.isStreet = street;
+  M.bounds = () => { if (street()) return TT.street.bounds(); const vp = M.viewport(); const pad = 0.15; const [w, s, e, n] = vp.getBounds(); const dx = (e - w) * pad, dy = (n - s) * pad; return [w - dx, s - dy, e + dx, n + dy]; };
   M.project = (p, z = 0) => M.viewport().project([p[0], p[1], z]);
   M.mpp = () => mpp(S.vs.zoom, S.vs.latitude);
   // หมุดปักตำแหน่งอยู่กลางจอบนเดสก์ท็อป แต่ยกขึ้นไปช่วงบนบนมือถือเพื่อไม่ให้ bottom sheet บัง
   M.pinScreen = () => [el.clientWidth / 2, TT.isMobile() ? el.clientHeight * 0.3 : el.clientHeight / 2];
-  M.pinCoord = () => { const p = M.viewport().unproject(M.pinScreen()); return [p[0], p[1]]; };
+  M.pinCoord = () => { if (street()) return TT.street.pinCoord(); const p = M.viewport().unproject(M.pinScreen()); return [p[0], p[1]]; };
 
   M.flyTo = function (target, duration = 1800) {
     if (TT.reducedMotion()) duration = 0;
+    if (street()) { TT.street.flyTo(target, duration); return; }
     const vs = { ...S.vs, ...target };
     if (!duration) { S.vs = vs; deckgl.setProps({ viewState: vs }); H.onView(vs, {}); scheduleCones(); return; }
     deckgl.setProps({ viewState: { ...vs, transitionDuration: duration, transitionInterpolator: duration ? new D.FlyToInterpolator({ speed: 1.3 }) : undefined, transitionEasing: t => 1 - Math.pow(1 - t, 3) } });
@@ -149,10 +153,22 @@
     const mobile = TT.isMobile();
     const pad = opts.padding || (mobile ? { top: 120, bottom: h * 0.5, left: 30, right: 30 } : { top: 110, bottom: 110, left: S.panelOpen ? 380 : 60, right: S.sideOpen ? 460 : 80 });
     const safe = { top: Math.min(pad.top, h * 0.4), bottom: Math.min(pad.bottom, h * 0.45), left: Math.min(pad.left, w * 0.4), right: Math.min(pad.right, w * 0.4) };
+    if (street()) { TT.street.fitBounds(bbox, safe, opts.maxZoom, opts.duration); return; }
     const vp = new D.WebMercatorViewport({ width: w, height: h });
     const { longitude, latitude, zoom } = vp.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { padding: safe, maxZoom: opts.maxZoom || 16 });
     M.flyTo({ longitude, latitude, zoom, pitch: opts.pitch ?? S.vs.pitch, bearing: opts.bearing ?? S.vs.bearing }, opts.duration);
   };
+
+  // ย้ายแผนที่ให้ตำแหน่ง pos ไปอยู่ที่ (w/2 - dx, h/2 - dy) ของจอ เพื่อไม่ให้แผงข้อมูลบัง
+  M.centerOn = function (pos, target, offset = [0, 0], duration = 1700) {
+    if (street()) { TT.street.centerOn(pos, target.zoom, offset, duration); return; }
+    const w = el.clientWidth, h = el.clientHeight;
+    const vp = new D.WebMercatorViewport({ ...S.vs, ...target, longitude: pos[0], latitude: pos[1], width: w, height: h });
+    const q = vp.unproject([w / 2 + offset[0], h / 2 + offset[1]]);
+    M.flyTo({ ...target, longitude: q[0], latitude: q[1] }, duration);
+  };
+  // กลับจากโหมดถนน: ใช้ศูนย์กลาง/ซูมล่าสุดกับแผนที่ 3 มิติ
+  M.syncView = function () { deckgl.setProps({ viewState: S.vs }); scheduleCones(); M.render(); };
 
   M.startIntro = function () {
     if (TT.reducedMotion()) { anim.wave = 1e6; S.introDone = true; M.render(); return; }
@@ -173,12 +189,13 @@
       anim.city = (anim.city + dt * 0.16 * Math.pow(2, 14 - TT.clamp(z, 11, 16)) * act) % TT.CITY_PERIOD;
       if (anim.wave < 1e6) { anim.wave = ((now - anim.introStart) / 1000) * 900; if (anim.wave > 1600) anim.wave = 1e6; }
     } else { anim.hwy = 600; anim.city = 9; }
-    M.render();
+    if (!street()) M.render();
     requestAnimationFrame(loop);
   }
 
   // ---------- เลเยอร์ ----------
   M.render = function () {
+    if (street()) { TT.street.sync(); return; }
     if (!deckgl) return;
     const z = S.vs.zoom, lat = S.vs.latitude, m = mpp(z, lat), f = slabFactor(z);
     const slab = 6 * m * f; // ความหนาของแผ่นประเทศ (เมตร) ให้คงที่บนจอ
