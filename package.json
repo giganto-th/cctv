@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node tools/serve.mjs",
     "build:geo": "node tools/build-geo.mjs",
-    "build:single": "node tools/build-single.mjs"
+    "build:single": "node tools/build-single.mjs",
+    "fetch:data": "node tools/fetch-real-data.mjs"
   },
   "devDependencies": {
     "@svg-maps/thailand": "2.0.0",

@@ -1,0 +1,36 @@
+name: Fetch real CCTV data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 20 * * 0' # ทุกวันจันทร์ 03:17 น. เวลาไทย
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-cctv-data
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch from OpenStreetMap, data.bangkok.go.th, data.go.th
+        run: node tools/fetch-real-data.mjs
+      - name: Summary
+        run: |
+          node -e "const s=require('./prototype/data/sources.json');console.log(JSON.stringify(s.totals,null,2));for(const x of s.sources)console.log(x.key,x.ok?'ok':'FAIL',x.count,x.error||'')"
+      - name: Commit data if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add prototype/data data/raw
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git commit -m "Update real CCTV data ($(date -u +%Y-%m-%d))"
+          git push
