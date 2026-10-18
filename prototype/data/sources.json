@@ -1,0 +1,82 @@
+{
+  "fetchedAt": "2026-10-18T02:19:37.861Z",
+  "durationSec": 30,
+  "totals": {
+    "cameras": 277,
+    "duplicatesRemoved": 0,
+    "bySource": {
+      "osm": 277,
+      "bma": 0,
+      "dgt": 0,
+      "gdcc": 0
+    },
+    "byProvince": {
+      "pri": 2,
+      "bkk": 114,
+      "spk": 8,
+      "sni": 3,
+      "pkt": 13,
+      "kkn": 3,
+      "cmi": 50,
+      "yla": 1,
+      "skn": 1,
+      "cpn": 1,
+      "pte": 1,
+      "kri": 1,
+      "kbi": 5,
+      "nbi": 43,
+      "lei": 4,
+      "cbi": 6,
+      "ska": 1,
+      "skw": 2,
+      "plk": 3,
+      "ubn": 4,
+      "trt": 2,
+      "npt": 1,
+      "aya": 1,
+      "srn": 2,
+      "unknown": 1,
+      "ryg": 1,
+      "cri": 1,
+      "cpm": 2
+    }
+  },
+  "sources": [
+    {
+      "key": "osm",
+      "name": "OpenStreetMap (man_made=surveillance)",
+      "url": "https://www.openstreetmap.org",
+      "license": "ODbL 1.0",
+      "attribution": "© OpenStreetMap contributors",
+      "ok": true,
+      "count": 277,
+      "endpoint": "https://overpass-api.de/api/interpreter",
+      "error": null,
+      "notes": "ตำแหน่งกล้องที่อาสาสมัคร OSM บันทึกไว้ ครอบคลุมทั้งกล้องรัฐและเอกชน ไม่มีสถานะออนไลน์หรือภาพสด"
+    },
+    {
+      "key": "bma",
+      "name": "กรุงเทพมหานคร: กล้อง CCTV จราจร (bma-cctv)",
+      "url": "https://data.bangkok.go.th/dataset/bma-cctv",
+      "license": "ไม่ระบุ",
+      "attribution": "กรุงเทพมหานคร",
+      "ok": false,
+      "count": 0,
+      "error": "TypeError: fetch failed",
+      "datasets": [],
+      "notes": "ภาพสดดูได้ที่ BMA Traffic (cpudapp.bangkok.go.th/bmatraffic) ชุดข้อมูลไม่มีลิงก์ภาพรายกล้อง"
+    },
+    {
+      "key": "dgt",
+      "name": "ศูนย์กลางข้อมูลเปิดภาครัฐ (data.go.th / gdcc.data.go.th)",
+      "url": "https://data.go.th",
+      "license": "ตามแต่ละชุดข้อมูล (ส่วนใหญ่ Open Data Common)",
+      "attribution": "หน่วยงานเจ้าของชุดข้อมูล",
+      "ok": false,
+      "count": 0,
+      "error": "https://data.go.th q=\"CCTV\": HTTP 403 https://data.go.th/api/3/action/package_search?q=CCTV&rows=100 :: <!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Access Denied</title> <style> body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f3f4f6; color: #333; } .container {  | https://data.go.th q=\"กล้องวงจรปิด\": HTTP 403 https://data.go.th/api/3/action/package_search?q=%E0%B8%81%E0%B8%A5%E0%B9%89%E0%B8%AD%E0%B8%87%E0%B8%A7%E0%B8%87%E0%B8%8 :: <!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Access Denied</title> <style> body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f3f4f6; color: #333; } .container {  | https://data.go.th q=\"กล้อง CCTV\": HTTP 403 https://data.go.th/api/3/action/package_search?q=%E0%B8%81%E0%B8%A5%E0%B9%89%E0%B8%AD%E0%B8%87+CCTV&rows=100 :: <!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Access Denied</title> <style> body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f3f4f6; color: #333; } .container {  | https://gdcc.data.go.th q=\"CCTV\": HTTP 403 https://gdcc.data.go.th/api/3/action/package_search?q=CCTV&rows=100 :: <!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Access Denied</title> <style> body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f3f4f6; color: #333; } .container {  | https://gdcc.data.go.th q=\"กล้องวงจรปิด\": HTTP 403 https://gdcc.data.go.th/api/3/action/package_search?q=%E0%B8%81%E0%B8%A5%E0%B9%89%E0%B8%AD%E0%B8%87%E0%B8%A7%E0%B8%87%E0 :: <!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Access Denied</title> <style> body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f3f4f6; color: #333; } .container {  | https://gdcc.data.go.th q=\"กล้อง CCTV\": HTTP 403 https://gdcc.data.go.th/api/3/action/package_search?q=%E0%B8%81%E0%B8%A5%E0%B9%89%E0%B8%AD%E0%B8%87+CCTV&rows=100 :: <!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Access Denied</title> <style> body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f3f4f6; color: #333; } .container { ",
+      "datasets": [],
+      "notes": "ชุดข้อมูลกล้องส่วนใหญ่เป็นจำนวนกล้องรายพื้นที่ มีเพียงบางชุดที่มีพิกัด"
+    }
+  ]
+}
