@@ -54,7 +54,7 @@ async function get(url, { timeout = 120000, method = 'GET', body, headers = {} }
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), timeout);
   try {
     const res = await fetch(url, { method, body, headers: { 'User-Agent': UA, ...headers }, signal: ctl.signal, redirect: 'follow' });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
+    if (!res.ok) { const t = (await res.text().catch(() => '')).replace(/\s+/g, ' ').slice(0, 300); throw new Error(`HTTP ${res.status} ${url.slice(0, 120)} :: ${t}`); }
     return Buffer.from(await res.arrayBuffer());
   } finally { clearTimeout(t); }
 }
@@ -115,7 +115,7 @@ const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.k
 const OSM_QUERY = `[out:json][timeout:240];
 area["ISO3166-1"="TH"][admin_level=2]->.th;
 (nwr["man_made"="surveillance"](area.th););
-out center tags meta;`;
+out center meta;`;
 function osmType(t) {
   const zone = (t['surveillance:zone'] || '').toLowerCase(), txt = `${t.name || ''} ${t.description || ''} ${t.operator || ''}`.toLowerCase();
   if (t['surveillance:type'] === 'ALPR' || zone === 'traffic' || /traffic|จราจร|ทางหลวง|highway/.test(txt)) return 'traffic';
@@ -130,7 +130,7 @@ async function fetchOSM() {
   for (const ep of OVERPASS) {
     try {
       log('OSM ←', ep);
-      const buf = await get(ep, { method: 'POST', body: new URLSearchParams({ data: OSM_QUERY }), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 300000 });
+      const buf = await get(`${ep}?data=${encodeURIComponent(OSM_QUERY)}`, { timeout: 300000, headers: { Accept: 'application/json' } });
       const j = JSON.parse(buf.toString('utf8'));
       const out = [];
       for (const e of j.elements || []) {
@@ -241,6 +241,8 @@ async function fetchDataGoTh() {
 const t0 = Date.now();
 const [osm, bma, dgt] = await Promise.all([fetchOSM(), fetchBMA(), fetchDataGoTh()]);
 log(`OSM ${osm.items.length} · BMA ${bma.items.length} · data.go.th ${dgt.items.length}`);
+for (const [k, r] of Object.entries({ osm, bma, dgt })) if (r.error) log(`${k} error:`, r.error);
+for (const rep of [...(bma.reports || []), ...(dgt.reports || [])]) for (const x of rep.resources) log(`  ${rep.dataset} / ${x.name} [${x.format}] rows=${x.rows} coords=${x.withCoords} ${x.note || ''} ${x.headers ? 'headers=' + JSON.stringify(x.headers).slice(0, 200) : ''}`);
 
 // ลำดับความน่าเชื่อถือ: หน่วยงานรัฐ > OSM; ตัดจุดซ้ำที่ห่างกันไม่เกิน 15 ม. ข้ามแหล่ง
 const all = [...bma.items, ...dgt.items, ...osm.items];
