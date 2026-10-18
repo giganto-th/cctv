@@ -20,12 +20,17 @@
     selected: null, selectedProv: null, reportOpen: false, placing: null,
     panelOpen: !TT.isMobile(), sideOpen: false, reqTab: 'near', activeReq: null,
     filterVersion: 0, statsVersion: 0, reqVersion: 0,
+    source: window.TT_REAL && TT.store.get('source', 'real') !== 'mock' ? 'real' : 'mock',
     favs: new Set(TT.store.get('favs', [])), votes: new Set(TT.store.get('votes', [])), recent: TT.store.get('recent', []),
   });
 
   // ---------- ข้อมูล ----------
-  S.cams = TT.buildCameras();
-  S.camById = new Map(S.cams.map(c => [c.id, c]));
+  // แหล่งกล้อง: ข้อมูลจริงจากแหล่งเปิด หรือข้อมูลจำลองสำหรับทดสอบ UX
+  function loadCameras() {
+    S.cams = S.source === 'real' ? TT.buildRealCameras() : TT.buildCameras();
+    S.camById = new Map(S.cams.map(c => [c.id, c]));
+  }
+  loadCameras();
   const mine = TT.store.get('myRequests', []).map(r => ({ ...r, days: (Date.now() - r.created) / 864e5, mine: true }));
   S.requests = [...mine, ...TT.buildRequests()];
 
@@ -69,6 +74,7 @@
     $('#panel-layers').classList.toggle('collapsed', !S.panelOpen);
     $('#btn-layers').setAttribute('aria-pressed', S.panelOpen);
     $('#stat-strip').innerHTML = U.statStrip(S);
+    $('#demo-badge').textContent = S.source === 'real' ? 'ตำแหน่งกล้องจริง · คำขอเป็นข้อมูลจำลอง' : 'ข้อมูลจำลอง · ต้นแบบ UX/UI เฟส 1';
     $('#req-badge').textContent = S.requests.filter(r => r.mine).length || S.national.voting;
     $('#req-dot').hidden = !S.requests.some(r => r.mine);
   }
@@ -295,9 +301,18 @@
   const alertRng = TT.rng(Date.now() % 1e6);
   const alerts = [];
   function pushAlert() {
+    if (S.source === 'real') { $('#alerts').innerHTML = U.realNote(TT.realMeta()); return; }
     const a = TT.makeUpdate(S.cams, S.requests, alertRng); if (!a) return;
     alerts.unshift(a); alerts.length = Math.min(alerts.length, 2);
     $('#alerts').innerHTML = `<div class="alerts-title">${TT.icon('clock')}อัปเดตล่าสุด</div>` + alerts.map(U.alert).join('');
+  }
+  function setSource(v) {
+    if (v === S.source || (v === 'real' && !window.TT_REAL)) return;
+    closeModal(); if (S.placing) exitPlacing();
+    S.source = v; TT.store.set('source', v);
+    loadCameras(); applyFilters(); renderLayersPanel(); M.render();
+    alerts.length = 0; pushAlert(); if (v === 'mock') pushAlert();
+    TT.toast(v === 'real' ? `ข้อมูลจริง ${TT.fmt(S.cams.length)} จุดจากแหล่งข้อมูลเปิด` : 'ข้อมูลจำลองสำหรับทดสอบ UX');
   }
 
   // ---------- event: แผนที่ ----------
@@ -325,6 +340,7 @@
     const a = t.dataset.act, v = t.dataset.v;
     switch (a) {
       case 'mode': setMode(v); break;
+      case 'source': setSource(v); break;
       case 'type': S.types.has(v) ? S.types.delete(v) : S.types.add(v); applyFilters(); renderLayersPanel(); M.refreshCones(); M.render(); break;
       case 'types-all': if (S.types.size === TT.TYPES.length) S.types.clear(); else TT.TYPES.forEach(x => S.types.add(x.key)); applyFilters(); renderLayersPanel(); M.refreshCones(); M.render(); break;
       case 'status': S.statuses.has(v) ? S.statuses.delete(v) : S.statuses.add(v); applyFilters(); renderLayersPanel(); M.refreshCones(); M.render(); break;

@@ -3,6 +3,7 @@
 // ผลลัพธ์:
 //   prototype/data/cameras.json   กล้องที่มีพิกัด (ใช้ในแอป)
 //   prototype/data/sources.json   ที่มา สัญญาอนุญาต จำนวน และข้อผิดพลาดของแต่ละแหล่ง
+//   prototype/js/real-data.js     ข้อมูลชุดเดียวกันในรูป script (เปิดไฟล์ตรงหรือไฟล์ HTML เดียวได้)
 //   data/raw/*                     ไฟล์ดิบที่ดาวน์โหลด (ไว้ตรวจสอบย้อนหลัง)
 // ใช้ Node 20+ (fetch ในตัว) ไม่ต้องติดตั้งแพ็กเกจเพิ่ม
 import fs from 'node:fs';
@@ -123,7 +124,8 @@ function osmType(t) {
   if (/beach|หาด|tourist|ท่องเที่ยว|viewpoint|จุดชมวิว/.test(txt)) return 'tourism';
   if (/fire|ไฟป่า|หมอกควัน|smoke/.test(txt)) return 'haze';
   if (t.surveillance === 'public' || zone === 'town' || zone === 'street' || /police|ตำรวจ|เทศบาล|อบต|อบจ|กทม|municipal/.test(txt)) return 'safety';
-  return 'community';
+  // ไม่มีแท็กพอจะบอกประเภท: ไม่เดาเอง
+  return 'other';
 }
 async function fetchOSM() {
   let lastErr;
@@ -281,5 +283,7 @@ const sources = {
 
 fs.writeFileSync(path.join(OUT, 'cameras.json'), JSON.stringify({ fetchedAt, count: cameras.length, cameras }));
 fs.writeFileSync(path.join(OUT, 'sources.json'), JSON.stringify(sources, null, 2));
+const slim = { fetchedAt, totals: sources.totals, sources: sources.sources.map(({ datasets, ...x }) => x) };
+fs.writeFileSync(path.join(root, 'prototype/js/real-data.js'), `// สร้างอัตโนมัติด้วย tools/fetch-real-data.mjs — ห้ามแก้ไขด้วยมือ\nwindow.TT_REAL = ${JSON.stringify({ meta: slim, cameras })};\n`);
 log(`เขียน ${cameras.length} กล้อง (ตัดซ้ำ ${dupes}) → prototype/data/cameras.json`);
 if (!osm.ok && !bma.ok && !dgt.ok) { console.error('ดึงข้อมูลไม่สำเร็จทุกแหล่ง'); process.exit(1); }

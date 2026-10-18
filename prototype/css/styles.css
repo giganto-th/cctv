@@ -35,7 +35,7 @@
   --ok: #178A4E; --warn: #B87800; --bad: #CF3434;
   --shadow: 0 10px 30px -12px rgba(20, 40, 60, 0.35), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
   --scrim: rgba(20, 32, 44, 0.32);
-  --t-traffic: #C77700; --t-safety: #2B68D6; --t-flood: #008A8A; --t-tourism: #CF3378; --t-community: #3F8F22; --t-haze: #7650D6;
+  --t-traffic: #C77700; --t-safety: #2B68D6; --t-flood: #008A8A; --t-tourism: #CF3378; --t-community: #3F8F22; --t-haze: #7650D6; --t-other: #606E7C;
   --feed-bg: #0B1218;
   color-scheme: light;
 }
@@ -49,7 +49,7 @@
     --signal: #3FD6CF; --ok: #3DDC84; --warn: #FFC24B; --bad: #FF5C5C;
     --shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.7), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
     --scrim: rgba(0, 4, 8, 0.55);
-    --t-traffic: #FFB238; --t-safety: #5C9CFF; --t-flood: #38D6CF; --t-tourism: #FF6FA8; --t-community: #8CD65A; --t-haze: #AA8CFF;
+    --t-traffic: #FFB238; --t-safety: #5C9CFF; --t-flood: #38D6CF; --t-tourism: #FF6FA8; --t-community: #8CD65A; --t-haze: #AA8CFF; --t-other: #B0BCC6;
     --feed-bg: #03070A;
     color-scheme: dark;
   }
@@ -63,7 +63,7 @@
   --signal: #3FD6CF; --ok: #3DDC84; --warn: #FFC24B; --bad: #FF5C5C;
   --shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.7), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
   --scrim: rgba(0, 4, 8, 0.55);
-  --t-traffic: #FFB238; --t-safety: #5C9CFF; --t-flood: #38D6CF; --t-tourism: #FF6FA8; --t-community: #8CD65A; --t-haze: #AA8CFF;
+  --t-traffic: #FFB238; --t-safety: #5C9CFF; --t-flood: #38D6CF; --t-tourism: #FF6FA8; --t-community: #8CD65A; --t-haze: #AA8CFF; --t-other: #B0BCC6;
   --feed-bg: #03070A;
   color-scheme: dark;
 }
@@ -151,6 +151,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; line-height: 1.2; 
 .pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
 .pill.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 13%, transparent); }
 .pill.info { color: var(--signal); background: color-mix(in srgb, var(--signal) 13%, transparent); }
+.pill.unk { color: var(--fg-2); background: var(--hover); }
 .pill.accent { color: var(--accent); background: var(--accent-soft); }
 .pill.live::before { animation: blink 1.4s infinite; }
 .type-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; color: var(--c); letter-spacing: .02em; }

@@ -24,9 +24,17 @@
       <div class="panel-scroll">
         <div class="stats">
           <div class="stat"><b>${TT.fmt(st.total)}</b><span>กล้องในระบบ</span></div>
-          <div class="stat"><b>${TT.fmt1(st.onlinePct)}<small>%</small></b><span>ออนไลน์ตอนนี้</span><svg class="spark" viewBox="0 0 120 18" preserveAspectRatio="none"><path d="${spark}" stroke="var(--ok)" stroke-width="1.4"/></svg></div>
+          ${S.source === 'real' ? `<div class="stat"><b>${TT.fmt(S.cams.filter(c => c.hasDir).length)}</b><span>ระบุทิศทางกล้อง</span></div>` : `<div class="stat"><b>${TT.fmt1(st.onlinePct)}<small>%</small></b><span>ออนไลน์ตอนนี้</span><svg class="spark" viewBox="0 0 120 18" preserveAspectRatio="none"><path d="${spark}" stroke="var(--ok)" stroke-width="1.4"/></svg></div>`}
           <div class="stat"><b>${TT.fmt(st.voting)}</b><span>คำขอรอชุมชนโหวต</span></div>
           <div class="stat"><b>${st.provinces}<small>/77</small></b><span>จังหวัดที่มีกล้อง</span></div>
+        </div>
+        <div class="section">
+          <span class="eyebrow">แหล่งข้อมูลกล้อง</span>
+          <div class="seg" style="--n:2" role="group" aria-label="แหล่งข้อมูลกล้อง">
+            <button type="button" data-act="source" data-v="real" aria-pressed="${S.source === 'real'}" ${window.TT_REAL ? '' : 'disabled'}>${I('map')}<span>ข้อมูลจริง${window.TT_REAL ? ` (${TT.fmt(window.TT_REAL.cameras.length)})` : ''}</span></button>
+            <button type="button" data-act="source" data-v="mock" aria-pressed="${S.source === 'mock'}">${I('sparkle')}<span>ข้อมูลจำลอง</span></button>
+          </div>
+          ${S.source === 'real' && TT.realMeta() ? `<div class="attr">${TT.realMeta().sources.filter(x => x.ok && x.count).map(x => esc(x.attribution)).join(' · ')} · ดึงข้อมูลเมื่อ ${TT.thDate(new Date(TT.realMeta().fetchedAt))} · ตำแหน่งจริง แต่ไม่มีสถานะและภาพสด</div>` : '<div class="attr">ข้อมูลจำลองสำหรับทดสอบหน้าจอ (มีภาพสดและสถานะจำลอง)</div>'}
         </div>
         <div class="section">
           <div class="section-title"><span class="eyebrow">มุมมองแผนที่</span></div>
@@ -37,11 +45,11 @@
         </div>
         <div class="section">
           <div class="section-title"><span class="eyebrow">ประเภทกล้อง</span><button class="chip" style="height:24px" data-act="types-all">${S.types.size === TT.TYPES.length ? 'ล้าง' : 'ทั้งหมด'}</button></div>
-          <div class="chips">${TT.TYPES.map(t => `<button type="button" class="chip" style="${typeVar(t.key)}" data-act="type" data-v="${t.key}" aria-pressed="${S.types.has(t.key)}"><i class="dot"></i>${t.th}<span class="count">${TT.fmt(st.byType[t.key] || 0)}</span></button>`).join('')}</div>
+          <div class="chips">${TT.TYPES.filter(t => st.byType[t.key]).map(t => `<button type="button" class="chip" style="${typeVar(t.key)}" data-act="type" data-v="${t.key}" aria-pressed="${S.types.has(t.key)}"><i class="dot"></i>${t.th}<span class="count">${TT.fmt(st.byType[t.key] || 0)}</span></button>`).join('')}</div>
         </div>
         <div class="section">
           <span class="eyebrow">สถานะ</span>
-          <div class="chips">${Object.entries(TT.STATUS).map(([k, v]) => `<button type="button" class="chip" style="--c:var(--${v.cls})" data-act="status" data-v="${k}" aria-pressed="${S.statuses.has(k)}"><i class="dot"></i>${v.th}<span class="count">${TT.fmt(st.byStatus[k] || 0)}</span></button>`).join('')}</div>
+          <div class="chips">${Object.entries(TT.STATUS).filter(([k]) => st.byStatus[k]).map(([k, v]) => `<button type="button" class="chip" style="--c:${v.cls === 'unk' ? 'var(--fg-3)' : `var(--${v.cls})`}" data-act="status" data-v="${k}" aria-pressed="${S.statuses.has(k)}"><i class="dot"></i>${v.th}<span class="count">${TT.fmt(st.byStatus[k] || 0)}</span></button>`).join('')}</div>
         </div>
         <div class="section">
           <span class="eyebrow">ไปยังภูมิภาค</span>
@@ -57,11 +65,12 @@
       </div>`;
   };
 
-  U.statStrip = S => `<span class="chip"><b>${TT.fmt(S.national.total)}</b> กล้อง</span><span class="chip"><b>${TT.fmt1(S.national.onlinePct)}%</b> ออนไลน์</span><span class="chip"><b>${S.national.voting}</b> คำขอรอโหวต</span><span class="chip">ข้อมูลจำลอง</span>`;
+  U.statStrip = S => `<span class="chip"><b>${TT.fmt(S.national.total)}</b> กล้อง</span>${S.source === 'real' ? '' : `<span class="chip"><b>${TT.fmt1(S.national.onlinePct)}%</b> ออนไลน์</span>`}<span class="chip"><b>${S.national.voting}</b> คำขอรอโหวต</span><span class="chip">${S.source === 'real' ? 'ข้อมูลจริง · OSM' : 'ข้อมูลจำลอง'}</span>`;
 
   // ---------- รายละเอียดกล้อง ----------
   // ---------- modal รายละเอียดกล้อง ----------
   U.camModal = function (S, c) {
+    if (c.real) return U.realCamModal(S, c);
     const t = TT.TYPE[c.type], st = TT.STATUS[c.status];
     const fav = S.favs.has(c.id);
     const statusPill = c.status === 'offline' ? `<span class="pill bad">ออฟไลน์ ${c.offlineHours} ชม.</span>` : `<span class="pill ${st.cls} ${c.status === 'online' ? 'live' : ''}">${st.th}</span>`;
@@ -121,6 +130,56 @@
         </aside>
       </div>`;
   };
+
+  // modal ของกล้องจากข้อมูลจริง: มีเฉพาะตำแหน่งและแท็กจากแหล่งต้นทาง ไม่มีภาพสด/สถานะ
+  U.realCamModal = function (S, c) {
+    const t = TT.TYPE[c.type], fav = S.favs.has(c.id), near = S.nearestOf(c, 4);
+    const srcName = c.src === 'osm' ? 'OpenStreetMap' : c.srcTh;
+    const kv = [
+      ['แหล่งข้อมูล', `<a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.srcTh)}</a>`],
+      ['สัญญาอนุญาต', esc((TT.SRC[c.src] || {}).license || '—')],
+      ['ผู้ดูแล/เจ้าของ', esc(c.operator || 'ไม่ระบุในแหล่งข้อมูล')],
+      ['พื้นที่ที่เฝ้าดู', esc(c.access || 'ไม่ระบุ')],
+      ['ทิศทางกล้อง', c.hasDir ? `${U.dirName(c.heading)} ${c.heading}°` : 'ไม่ระบุ'],
+      ['ลักษณะกล้อง', esc([c.camType, c.mount && 'ติดตั้งที่' + c.mount].filter(Boolean).join(' · ') || 'ไม่ระบุ')],
+      ['แก้ไขล่าสุดที่ต้นทาง', c.updatedSrc ? TT.thDate(new Date(c.updatedSrc)) : '—'],
+      ['พิกัด', `<button class="mono" data-act="copy-coord" style="text-decoration:underline dotted;font-size:.75rem">${TT.coord(c.pos)}</button>`],
+    ];
+    return `${handle}
+      <header class="modal-head">
+        <div class="mh-text">
+          <div class="mh-tags"><span class="type-tag" style="${typeVar(c.type)}">${t.th}</span><span class="pill info">ข้อมูลจริง · ${esc(srcName)}</span></div>
+          <h2 id="modal-title">${esc(c.name)}</h2>
+          <div class="sub"><span>จ.${esc(c.provTh)}</span><span class="mono">${esc(c.id)}</span></div>
+        </div>
+        <button class="icon-btn sm modal-close" data-act="close-modal" aria-label="ปิด">${I('x')}</button>
+      </header>
+      <div class="modal-body cam-grid">
+        <div class="cm-main">
+          <div class="feed"><div class="offline"><b>ยังไม่มีภาพจากกล้องนี้</b><span>แหล่งข้อมูลเปิดให้เฉพาะตำแหน่งกล้อง ภาพสดต้องเชื่อมต่อกับหน่วยงานหรือเจ้าของกล้องในเฟสถัดไป</span></div></div>
+          <div class="actions">
+            <a href="https://www.google.com/maps/search/?api=1&query=${c.pos[1].toFixed(6)},${c.pos[0].toFixed(6)}" target="_blank" rel="noopener">${I('nav')}นำทาง</a>
+            <a href="${esc(c.url)}" target="_blank" rel="noopener">${I('map')}ดูที่ต้นทาง</a>
+            <button type="button" data-act="fav" aria-pressed="${fav}">${I('star')}${fav ? 'ติดตามแล้ว' : 'ติดตาม'}</button>
+            <button type="button" data-act="report" aria-expanded="${!!S.reportOpen}">${I('flag')}รายงาน</button>
+          </div>
+          ${S.reportOpen ? `<form class="report" id="report-form">
+            <b style="font-size:var(--fs-sm)">แจ้งปัญหาของข้อมูลจุดนี้</b>
+            ${['ไม่มีกล้องอยู่ตรงนี้แล้ว', 'ตำแหน่งบนแผนที่ไม่ถูกต้อง', 'ทิศทางกล้องไม่ตรงกับที่แสดง', 'ข้อมูลอื่นไม่ถูกต้อง'].map((o, i) => `<label><input type="radio" name="rp" id="rp-${i}" value="${i}" ${i === 0 ? 'checked' : ''}>${o}</label>`).join('')}
+            <button class="btn btn-primary" type="submit">ส่งรายงาน</button></form>` : ''}
+          <div class="privacy-note">${I('eye')}<span>ตำแหน่งนี้มาจาก${esc(srcName)} (${esc((TT.SRC[c.src] || {}).credit || '')}) ข้อมูลอาจไม่ครบหรือไม่เป็นปัจจุบัน แก้ไขได้ที่ต้นทาง</span></div>
+        </div>
+        <aside class="cm-side">
+          <dl class="kv">${kv.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+          <section>
+            <div class="eyebrow" style="margin-bottom:6px">กล้องใกล้เคียง (ข้อมูลจริง)</div>
+            <div class="nearby">${near.length ? near.map(n => `<button type="button" data-act="cam" data-v="${n.cam.id}" style="${typeVar(n.cam.type)}"><i class="sw"></i><span>${esc(n.cam.name)}</span><span class="d">${TT.dist(n.d)}</span></button>`).join('') : '<span class="muted" style="font-size:.8125rem">ไม่มีกล้องในระยะ 8 กม.</span>'}</div>
+          </section>
+        </aside>
+      </div>`;
+  };
+  U.realNote = meta => (meta ? `<div class="alerts-title">${I('map')}ข้อมูลจริงจากแหล่งเปิด</div>
+    <div class="alert" style="--c:var(--signal);cursor:default"><span class="ic">${I('check')}</span><span><b>${TT.fmt(meta.totals.cameras)} จุดกล้องที่มีพิกัด</b><small>${meta.sources.filter(x => x.ok && x.count).map(x => esc(x.key.toUpperCase())).join(' · ')} · ดึงข้อมูล ${TT.thDate(new Date(meta.fetchedAt))}</small></span></div>` : '');
 
   // แถบสถานะออนไลน์/ออฟไลน์ย้อนหลัง 48 ช่วง (ครึ่งชั่วโมง) จากการตรวจสัญญาณ ไม่มีการวิเคราะห์ภาพ
   U.uptime = function (c) {

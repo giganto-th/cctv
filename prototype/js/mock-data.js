@@ -10,12 +10,14 @@
     { key: 'tourism', th: 'ท่องเที่ยว', code: 'TOU', dark: [255, 111, 168], light: [207, 51, 120], css: 'var(--t-tourism)', agencies: ['การท่องเที่ยวแห่งประเทศไทย', 'องค์การบริหารส่วนจังหวัด', 'เทศบาลเมือง'] },
     { key: 'community', th: 'ชุมชนแชร์', code: 'COM', dark: [140, 214, 90], light: [63, 143, 34], css: 'var(--t-community)', agencies: ['ประชาชนร่วมแชร์', 'นิติบุคคลหมู่บ้าน', 'ร้านค้าในชุมชน'] },
     { key: 'haze', th: 'หมอกควัน/ไฟป่า', code: 'HAZ', dark: [170, 140, 255], light: [118, 80, 214], css: 'var(--t-haze)', agencies: ['กรมอุทยานแห่งชาติฯ', 'กรมควบคุมมลพิษ', 'องค์การบริหารส่วนตำบล'] },
+    { key: 'other', th: 'ไม่ระบุประเภท', code: 'OTH', dark: [176, 188, 198], light: [96, 110, 124], css: 'var(--t-other)', agencies: ['ไม่ระบุ'] },
   ];
   TT.TYPE = Object.fromEntries(TT.TYPES.map(t => [t.key, t]));
   TT.STATUS = {
     online: { th: 'ออนไลน์', cls: 'ok' },
     offline: { th: 'ออฟไลน์', cls: 'bad' },
     maintenance: { th: 'ซ่อมบำรุง', cls: 'warn' },
+    unknown: { th: 'ไม่ทราบสถานะ', cls: 'unk' },
   };
   TT.REGIONS = {
     'เหนือ': [97.3, 15.2, 101.4, 20.5], 'อีสาน': [101.3, 14.1, 105.7, 18.5], 'กลาง': [99.3, 13.4, 101.4, 15.6],
@@ -264,6 +266,7 @@
 
   // ---------- อัปเดตของเครือข่ายกล้อง (สถานะ/ติดตั้งใหม่/คำขอ) ----------
   TT.makeUpdate = function (cams, requests, r) {
+    if (!cams.some(x => x.status === 'offline') || !cams.some(x => x.status === 'maintenance')) return null;
     const k = r();
     if (k < 0.35) { const c = r.pick(cams.filter(x => x.status === 'offline')); return { cam: c, msg: 'สัญญาณขาดหาย แจ้งหน่วยงานเจ้าของแล้ว', icon: 'alert', type: c.type }; }
     if (k < 0.6) { const c = r.pick(cams.filter(x => x.status === 'online')); return { cam: c, msg: 'กลับมาออนไลน์แล้ว', icon: 'check', type: c.type }; }

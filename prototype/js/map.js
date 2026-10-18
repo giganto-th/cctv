@@ -140,7 +140,7 @@
     const b = M.bounds(); let n = 0;
     for (const c of S.filtered) {
       if (c.pos[0] < b[0] || c.pos[0] > b[2] || c.pos[1] < b[1] || c.pos[1] > b[3]) continue;
-      if (S.selected && c.id === S.selected.id) continue;
+      if ((S.selected && c.id === S.selected.id) || c.hasDir === false) continue;
       const k = col(c.type);
       coneLayer.addLayer(L.polygon(ring(TT.sector(c.pos, c.heading, c.fov, Math.min(c.range, 260), 8)), { color: rgba(k, 0.75), weight: 1, fillColor: rgba(k), fillOpacity: c.status === 'online' ? 0.18 : 0.06, interactive: false }));
       if (++n > 400) break;
@@ -151,7 +151,7 @@
     selLayer.clearLayers();
     const c = S.selected; if (!c) return;
     const k = col(c.type), head = c.headingLive ?? c.heading;
-    selLayer.addLayer(L.polygon(ring(TT.sector(c.pos, head, c.fov, c.range, 18)), { color: rgba(k), weight: 2, fillColor: rgba(k), fillOpacity: 0.3, interactive: false }));
+    if (c.hasDir !== false) selLayer.addLayer(L.polygon(ring(TT.sector(c.pos, head, c.fov, c.range, 18)), { color: rgba(k), weight: 2, fillColor: rgba(k), fillOpacity: 0.3, interactive: false }));
     selLayer.addLayer(L.circleMarker(ll(c.pos), { radius: 18, color: rgba(k), weight: 2, fill: false, className: 'sel-pulse', interactive: false }));
     selLayer.addLayer(L.circleMarker(ll(c.pos), { radius: 8, color: '#fff', weight: 3, fillColor: rgba(k), fillOpacity: 1, interactive: false }));
   }
