@@ -1,18 +1,18 @@
 {
-  "fetchedAt": "2026-11-08T23:42:19.776Z",
-  "durationSec": 38,
+  "fetchedAt": "2026-11-15T23:58:44.019Z",
+  "durationSec": 46,
   "totals": {
-    "cameras": 277,
+    "cameras": 278,
     "duplicatesRemoved": 0,
     "bySource": {
-      "osm": 277,
+      "osm": 278,
       "bma": 0,
       "dgt": 0,
       "gdcc": 0
     },
     "byProvince": {
       "pri": 2,
-      "bkk": 114,
+      "bkk": 115,
       "spk": 8,
       "sni": 3,
       "pkt": 13,
@@ -49,7 +49,7 @@
       "license": "ODbL 1.0",
       "attribution": "© OpenStreetMap contributors",
       "ok": true,
-      "count": 277,
+      "count": 278,
       "endpoint": "https://overpass-api.de/api/interpreter",
       "error": null,
       "notes": "ตำแหน่งกล้องที่อาสาสมัคร OSM บันทึกไว้ ครอบคลุมทั้งกล้องรัฐและเอกชน ไม่มีสถานะออนไลน์หรือภาพสด"
