@@ -1,23 +1,20 @@
 {
-  "fetchedAt": "2026-11-15T23:58:44.019Z",
-  "durationSec": 46,
+  "fetchedAt": "2026-11-23T00:55:04.887Z",
+  "durationSec": 299,
   "totals": {
-    "cameras": 278,
+    "cameras": 183,
     "duplicatesRemoved": 0,
     "bySource": {
-      "osm": 278,
+      "osm": 183,
       "bma": 0,
       "dgt": 0,
       "gdcc": 0
     },
     "byProvince": {
-      "pri": 2,
-      "bkk": 115,
-      "spk": 8,
+      "bkk": 99,
+      "spk": 5,
       "sni": 3,
       "pkt": 13,
-      "kkn": 3,
-      "cmi": 50,
       "yla": 1,
       "skn": 1,
       "cpn": 1,
@@ -25,20 +22,13 @@
       "kri": 1,
       "kbi": 5,
       "nbi": 43,
-      "lei": 4,
-      "cbi": 6,
       "ska": 1,
-      "skw": 2,
-      "plk": 3,
-      "ubn": 4,
       "trt": 2,
       "npt": 1,
       "aya": 1,
-      "srn": 2,
       "unknown": 1,
-      "ryg": 1,
-      "cri": 1,
-      "cpm": 2
+      "cbi": 3,
+      "ryg": 1
     }
   },
   "sources": [
@@ -49,8 +39,8 @@
       "license": "ODbL 1.0",
       "attribution": "© OpenStreetMap contributors",
       "ok": true,
-      "count": 278,
-      "endpoint": "https://overpass-api.de/api/interpreter",
+      "count": 183,
+      "endpoint": "https://overpass.kumi.systems/api/interpreter",
       "error": null,
       "notes": "ตำแหน่งกล้องที่อาสาสมัคร OSM บันทึกไว้ ครอบคลุมทั้งกล้องรัฐและเอกชน ไม่มีสถานะออนไลน์หรือภาพสด"
     },
